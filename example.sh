@@ -1,8 +1,8 @@
 #! bin/bash
 DataDIR=./Sample_data
-Train=${DataDIR}/train.txt
-Test=${DataDIR}/test.txt
-Valid=${DataDIR}/valid.txt
+Train=${DataDIR}/sample_train.txt
+Test=${DataDIR}/sample_test.txt
+Valid=${DataDIR}/sample_valid.txt
 
 ## Embedding Weights Type (fastText .bin and .vec)
 EmbeddingWeightsPath=./Word_embedding/
