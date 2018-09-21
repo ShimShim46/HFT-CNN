@@ -17,7 +17,7 @@ Cython==0.27.3
 docutils==0.14
 fastrlock==0.3
 filelock==3.0.0
-Flask==0.12.2
+Flask==0.12.3
 future==0.16.0
 gensim==3.2.0
 idna==2.6
