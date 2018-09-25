@@ -98,15 +98,32 @@ EmbeddingWeightsPath=./Word_embedding/
 * 評価データ: CNNの汎化性能を検証するために必要なデータ
 * テストデータ : CNNを用いて分類したいデータ
 
-評価データは各エポックごとにCNNの汎化誤差を評価する際に用いられ、学習の継続によって過学習が起きた場合にEarly Stoppingを行います. また保存されるCNNのパラメータは汎化誤差が最も小さい時のエポックのものが保存されます．
+評価データは各エポックごとにCNNの汎化誤差を評価する際に用いられ、学習の継続によって過学習が起きた場合に[Early Stopping](https://docs.chainer.org/en/stable/reference/generated/chainer.training.triggers.EarlyStoppingTrigger.html)を行います. また保存されるCNNのパラメータは汎化誤差が最も小さい時のエポックのものが保存されます．
 
 #### 形式
+文書データの入力形式は次のとおりです. 各列はTab(\t)区切りです. Sample_dataに実例があります.
+* 1列目: 文書のラベル. マルチラベルに対応. 各ラベルはカンマ(,)区切り
+* 2列目: 文書. 各単語はスペース区切り
+
+例)
+```
+LABEL1  I am a boy .
+LABEL2,LABEL6  This is my pen .
+LABEL3,LABEL1   ...
+```
 
 ### 文書データが階層構造を有する場合
+分類する文書データが階層構造を有する場合, 階層構造を利用した学習モデル(WoFTモデル, HFTモデル)を利用することができます.
+```example.sh```では```TREE/Amazon_all.tree```を読み込みで学習モデルを構築します.
+
+1行に1ラベルが書かれます.
+ラベルは```<```によって階層が分けられます.
+例えば
+```A<B<C```
+であれば第3階層のCラベルを意味します.
+
+```example.sh```の```TreefilePath```を書き換えることで独自の木構造を読み込むことが可能です.
 
 ## License
-    
-
-
 
 
