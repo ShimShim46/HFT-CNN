@@ -152,5 +152,6 @@ LABEL3,LABEL1   ...
 ```example.sh```の```TreefilePath```を書き換えることで独自の木構造を読み込むことが可能です.
 
 ## License
+MIT
 
 
