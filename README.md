@@ -45,6 +45,33 @@ HFT-CNN
     4. ```source activate hft_cnn_env```　で仮想環境に切り替え
     5. この環境内でHFT-CNNのコードを実行することが可能
 
+## ディレクトリ構造
+```
+|--CNN  ## 学習結果を保存されるディレクトリ
+|  |--LOG     ## 学習ログ                                                                                                        
+|  |--PARAMS  ## CNNの学習パラメータ
+|  |--RESULT  ## 分類結果
+|--cnn_model.py  ## CNNモデル
+|--cnn_train.py  ## CNNの学習
+|--data_helper.py  ## データ整形/操作
+|--example.sh  ## 実行することでサンプルデータの分類が可能
+|--hft_cnn_env.yml ## 依存関係(Anaconda)
+|--LICENSE  ## MITライセンス
+|--MyEvaluator.py  ## CNNの学習 validationの処理
+|--MyUpdater.py  ## CNNの学習 1iterationの処理
+|--README.md  ## README
+|--requirements.txt  ## 依存関係(pip)
+|--Sample_data  ## サンプルの文書データ(Amazon)
+|  |--sample_test.txt  ## 評価
+|  |--sample_train.txt  ## 訓練
+|  |--sample_valid.txt  ## 検証
+|--train.py  ## main関数
+|--Tree
+|  |--Amazon_all.tree   ## Amazon用の木構造ファイル
+|--tree.py  ## 木構造の操作
+|--Word_embedding  ## 単語の分散表現ディレクトリ
+|--xml_cnn_model.py  ## LiuらのXML-CNNモデル(chainer実装)
+```
 
 ## Quick-start
 exmaple.shを実行することでFlatモデルを用いたサンプル文書(Amazon商品レビュー)の自動分類を試すことができます:
