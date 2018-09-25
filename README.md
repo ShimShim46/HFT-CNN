@@ -1,5 +1,6 @@
 HFT-CNN
 ==
+![result](https://github.com/ShimShim46/HFT-CNN/blob/media/Peek 2018-09-25 17-11.gif)
 このコードでは次の4種類のCNNモデルを用いた文書分類ができます:
 * Flat モデル : 階層構造を利用せずに学習
 * Without Fine-tuning (WoFt) モデル : 階層構造を利用するがFine-tuningは利用せずに学習
