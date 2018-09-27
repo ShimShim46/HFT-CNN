@@ -97,6 +97,11 @@ Loading Word embedings...
 ## Network Type (XML-CNN,  CNN-Flat,  CNN-Hierarchy,  CNN-fine-tuning or Pre-process)
 ModelType=XML-CNN
 ```
+* CNN-Flat: Flatモデル
+* CNN-Hierarchy: WoFtモデル
+* CNN-fine-tuning: HFTモデル
+* XML-CNN: XML-CNNモデル
+
 注意: 
 * CNN-Hierarchy, CNN-fine-tuningを選択する場合には**Pre-process**で学習をしてから学習を行ってください
 * Pre-processでは階層構造の第1階層目のみを学習し、CNNのパラメータを保存します
