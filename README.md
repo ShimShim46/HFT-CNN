@@ -104,6 +104,8 @@ ModelType=XML-CNN
 
 注意: 
 * CNN-Hierarchy, CNN-fine-tuningを選択する場合には**Pre-process**で学習をしてから学習を行ってください
+    * 例) ``` ModelType=Pre-process => ModelType=CNN-Hierarchy```
+    ![result](https://github.com/ShimShim46/HFT-CNN/blob/media/pre-process_demo.gif)
 * Pre-processでは階層構造の第1階層目のみを学習し、CNNのパラメータを保存します
 * このときに保存されたパラメータはCNN-Hierarchy, CNN-fine-tuningの両タイプで共有されます
 
