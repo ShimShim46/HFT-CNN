@@ -1,4 +1,4 @@
-#! bin/bash
+#! /bin/bash
 DataDIR=./Sample_data
 Train=${DataDIR}/sample_train.txt
 Test=${DataDIR}/sample_test.txt
