@@ -130,7 +130,7 @@ Notes:
 ## Word embedding
 Our codes utilize word embedding obtained by [fastText](https://github.com/facebookresearch/fastText).
 There are two options:
-1.  You can simply run example.sh. In this case, `wiki.en.vec`` is downloaded in the directory Word_embedding and is used for training.
+1.  You can simply run example.sh. In this case, ```wiki.en.vec`` is downloaded in the directory Word_embedding and is used for training.
 
 1. You can specify your own "bin" file by making a path ```EmbeddingWeightsPath``` in the example.sh file.
 ```
