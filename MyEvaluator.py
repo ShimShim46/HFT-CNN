@@ -63,7 +63,7 @@ class MyEvaluator(extensions.Evaluator):
                 x = cuda.to_gpu(np.array([i[0] for i in batch]))
                 labels = [l[1] for l in batch]
                 for i in range(len(labels)):
-                    l_list = list(set(labels[i])) # remove duplicate cateories to avoid double count
+                    l_list = list(set(labels[i]))
                     for y in l_list:                   
                         row_idx.append(i)
                         col_idx.append(y)

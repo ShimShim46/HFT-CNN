@@ -41,7 +41,7 @@ class MyUpdater(training.StandardUpdater):
         labels = [l[1] for l in batch] 
         row_idx, col_idx, val_idx = [], [], []
         for i in range(len(labels)):
-            l_list = list(set(labels[i])) # remove duplicate cateories to avoid double count
+            l_list = list(set(labels[i]))
             for y in l_list:
                 row_idx.append(i)
                 col_idx.append(y)

@@ -1,81 +1,97 @@
 HFT-CNN
 ==
 ![result](https://github.com/ShimShim46/HFT-CNN/blob/media/demo.gif)
-このコードでは次の4種類のCNNモデルを用いた文書分類ができます:
-* Flat モデル : 階層構造を利用せずに学習
-* Without Fine-tuning (WoFt) モデル : 階層構造を利用するがFine-tuningは利用せずに学習
-* Hierarchical Fine-Tuning (HFT) モデル : 階層構造とFine-tuningを利用して学習
-* XML-CNN モデル ([Liu+ '17](http://nyc.lti.cs.cmu.edu/yiming/Publications/jliu-sigir17.pdf)) : Liuら'17 の提案したモデル
-
-このコードを用いる際には次の論文をご参照ください: 
-
-**HFT-CNN: Learning Hierarchical Category Structure for Multi-label Short Text Categorization** Kazuya Shimura, Jiyi Li and Fumiyo Fukumoto. EMNLP, 2018.
+These four codes/models are Chainer based implementation for Convolutional Neural Networks for text categorization. 
+* Flat model: Flat non-hierarchical model
+* Without Fine-tuning (WoFt) model: Hierarchical model but without Fine-tuning
+* Hierarchical Fine-Tuning (HFT) model: Hierarchical and Fine-tuning model
+* XML-CNN model ([Liu+ '17](http://nyc.lti.cs.cmu.edu/yiming/Publications/jliu-sigir17.pdf)) : Liu'17 model
 
 
-### 各モデルの特徴
+If you find that the codes are useful for your research, please cite the following paper. BibTex entry.
 
-|              特徴\手法 |   Flatモデル  |   WoFtモデル  |   HFTモデル   |    XML-CNNモデル    |
+@inproceedings{Shimura2018,
+title={HFT-CNN: Learning Hierarchical Category Structure for Multi-label Short Text Categorization},
+Author={Kazuya Shimura, Jiyi Li and Fumiyo Fukumoto},
+booktitle={EMNLP},
+pages={},
+year={2018},
+}
+
+Contact person: Kazuya Shimura, g17tk008(at)yamanashi(dot)ac(dot)jp
+
+<!-- https://cl.cs.yamanashi.ac.jp -->
+
+If something is broken or if you have further questions, please send me an e-mail.
+
+### Features of each model
+
+|              Feature\Method |   Flat model  |   WoFt model  |   HFT model   |    XML-CNN model    |
 |-----------------------:|:-------------:|:-------------:|:-------------:|:-------------------:|
-|              Hierarchycal Structure |               |       ✔       |       ✔       |                     |
+|              Hierarchical Structure |               |       ✔       |       ✔       |                     |
 |            Fine-tuning |               |       ✔       |       ✔       |                     |
 |                Pooling Type | 1-max pooling | 1-max pooling | 1-max pooling | dynamic max pooling |
 | Compact Representation |               |               |               |          ✔          |
 
-## Requirements
-このコードを実行するために必要なライブラリのうち、代表的なものを次に示します。
-* Python 3.5.4 以降
-* Chainer 4.0.0 以降 ([chainer](http://chainer.org/))
-* CuPy 4.0.0 以降 ([cupy](https://cupy.chainer.org/))
+## Setup
+In order to run the code, I recommend the following environment.
+* Python 3.5.4 or higher.
+* Chainer 4.0.0 or higher. ([chainer](http://chainer.org/))
+* CuPy 4.0.0 or higher.  ([cupy](https://cupy.chainer.org/))
 
-注意: 
-* 現在のコードのバージョンでは**GPU**を利用することが前提となっています。
-* コードを実行するために必要なライブラリの詳細はrequirements.txtをご参照ください。
+## Requirements
+The codes require GPU environment. Please see requirements.txt to run our codes.
+
 
 ## Installation
-* このページの **clone or download** からコードをダウンロード
-* requirements.txtに書かれたライブラリをインストールし、実行環境を構築
-* もし必要であれば、次の手順でAnaconda([anaconda](https://www.anaconda.com/enterprise/))による仮想環境を構築
-    1. [Anacondaのダウンロードページ](https://www.anaconda.com/download/)から自分の環境にあったものをインストール
-        * 例: Linux(x86アーキテクチャ, 64bit)にインストールする場合:
-            1. wget https://repo.continuum.io/archive/Anaconda3-5.1.0-Linux-x86_64.sh
-            1. bash Anaconda3-5.1.0-Linux-x86_64.sh
-            
-            でインストールできます。
-    3. Anacondaをインストール後、仮想環境を構築
-        ```conda env create -f=hft_cnn_env.yml```
-    4. ```source activate hft_cnn_env```　で仮想環境に切り替え
-    5. この環境内でHFT-CNNのコードを実行することが可能
+1. Download codes from **clone or download**
+1. Install the requirements: reguriements.txt
+1.  You can also use Python data science platform, [Anaconda](https://www.anaconda.com/enterprise/) as follows:
+    * Download Anaconda from (https://www.anaconda.com/download/)
+    * Example: Anaconda 5.1 for Linux(x86 architecture, 64bit) Installer 
+        ```
+        wget https://repo.continuum.io/archive/Anaconda3-5.1.0-Linux-x86_64.sh
+        
+        bash Anaconda3-5.1.0-Linux-x86_64.sh
+        
+        ## Create virtual environments with the Anaconda Python distribution ##
+        conda env create -f=hft_cnn_env.yml
 
-## ディレクトリ構造
+        source activate hft_cnn_env
+        ```
+1. You can run our HFT-CNN codes on this environment.
+   
+## Directory structure
 ```
-|--CNN  ## 学習結果を保存されるディレクトリ
-|  |--LOG     ## 学習ログ                                                                                                        
-|  |--PARAMS  ## CNNの学習パラメータ
-|  |--RESULT  ## 分類結果
-|--cnn_model.py  ## CNNモデル
-|--cnn_train.py  ## CNNの学習
-|--data_helper.py  ## データ整形/操作
-|--example.sh  ## 実行することでサンプルデータの分類が可能
-|--hft_cnn_env.yml ## 依存関係(Anaconda)
-|--LICENSE  ## MITライセンス
-|--MyEvaluator.py  ## CNNの学習 validationの処理
-|--MyUpdater.py  ## CNNの学習 1iterationの処理
+|--CNN  ##  Directory for saving the models
+|  |--LOG     ## Log files
+|  |--PARAMS  ## CNN parameters
+|  |--RESULT  ## Store categorization results
+|--cnn_model.py  ##  CNN model
+|--cnn_train.py  ##  CNN training
+|--data_helper.py  ##  Data helper
+|--example.sh  ##  you can run and categorize my codes by using sample data
+|--hft_cnn_env.yml ##  Anaconda components dependencies
+|--LICENSE  ## MIT LICENSE
+|--MyEvaluator.py  ##  CNN training (validation)
+|--MyUpdater.py  ##  CNN training (iteration)
 |--README.md  ## README
-|--requirements.txt  ## 依存関係(pip)
-|--Sample_data  ## サンプルの文書データ(Amazon)
-|  |--sample_test.txt  ## 評価
-|  |--sample_train.txt  ## 訓練
-|  |--sample_valid.txt  ## 検証
-|--train.py  ## main関数
+|--requirements.txt  ## Dependencies(pip)
+|--Sample_data  ## Amazon sample data
+|  |--sample_test.txt  ## Sample test data
+|  |--sample_train.txt  ## Sample training data
+|  |--sample_valid.txt  ## Sample validation data
+|--train.py  ## Main
 |--Tree
-|  |--Amazon_all.tree   ## Amazon用の木構造ファイル
-|--tree.py  ## 木構造の操作
-|--Word_embedding  ## 単語の分散表現ディレクトリ
-|--xml_cnn_model.py  ## LiuらのXML-CNNモデル(chainer実装)
+|  |--Amazon_all.tree  ## a hierarchical structure provided by Amazon
+|--tree.py  ## Tree operation
+|--Word_embedding  ## Directory of word embedding
+|--xml_cnn_model.py  ## Chainers's version of Liu et al XML-CNN model
 ```
 
 ## Quick-start
-exmaple.shを実行することでFlatモデルを用いたサンプル文書(Amazon商品レビュー)の自動分類を試すことができます:
+You can categorize sample data (Amazon product reviews) by running example.sh, Flat model.
+
 ```
 bash example.sh
 --------------------------------------------------
@@ -86,80 +102,70 @@ Loading test data: 100%|██████████████████�
 --------------------------------------------------
 Loading Word embedings...
 ```
-学習後の結果はCNNディレクトリに保存されます.
-* RESULT : テストデータを分類した結果
-* PARAMS : 学習後のCNNのパラメータ
-* LOG : 学習のログファイル
+The results are stored: 
+* RESULT: categorization result
+* PARAMS: obtained CNN parameters
+* LOG: Log file
 
-### 学習モデルの変更
-```example.sh```内の ```ModelType``` を変更することで学習するモデルを変更することができます
-```                                                                                                                 
+
+## Training model change
+You can change a training model by "ModelType" in the file, example.sh
+
+```
 ## Network Type (XML-CNN,  CNN-Flat,  CNN-Hierarchy,  CNN-fine-tuning or Pre-process)
 ModelType=XML-CNN
 ```
-* CNN-Flat: Flatモデル
-* CNN-Hierarchy: WoFtモデル
-* CNN-fine-tuning: HFTモデル
-* XML-CNN: XML-CNNモデル
+* CNN-Flat: Flat model
+* CNN-Hierarchy:  WoFt model
+* CNN-fine-tuning:  HTF model
+* XML-CNN: XML-CNN model
 
-注意: 
-* CNN-Hierarchy, CNN-fine-tuningを選択する場合には**Pre-process**で学習をしてから学習を行ってください
-    * 例) ``` ModelType=Pre-process => ModelType=CNN-Hierarchy```
+Notes:
+
+* When you chose CNN-Hierarchy or CNN-fine-tuning, learn a model by using **Pre-process**.
+    * Example) ``` ModelType=Pre-process => ModelType=CNN-Hierarchy```
     ![result](https://github.com/ShimShim46/HFT-CNN/blob/media/pre-process_demo.gif)
-* Pre-processでは階層構造の第1階層目のみを学習し、CNNのパラメータを保存します
-* このときに保存されたパラメータはCNN-Hierarchy, CNN-fine-tuningの両タイプで共有されます
+* When you chose **Pre-process**, it learns the top level of a hierarchy and stores CNN parameters. The stored parameters are used in both CNN-Hierarchy and CNN-fine-tuning.
 
-### 単語の分散表現について
-このコードでは単語の分散表現に[fastText](https://github.com/facebookresearch/fastText)の学習結果を利用しています.
+## Word embedding
+Our codes utilize word embedding obtained by [fastText](https://github.com/facebookresearch/fastText).
+There are two options:
+1.  You can simply run example.sh. In this case, `wiki.en.vec`` is downloaded in the directory Word_embedding and is used for training.
 
-```example.sh```内の```EmbeddingWeightsPath```に単語埋め込み層の初期値として利用したいfastTextの```bin```ファイルを指定することができます。
-
-fastTextの```bin```ファイルを用意していない場合、英語Wikipediaコーパスを用いた単語の分散表現が[chakin](https://github.com/chakki-works/chakin)を用いて自動的にダウンロードされます。
-
-コードに手を加えず```example.sh```を実行した場合にはWord_embeddingディレクトリに```wiki.en.vec```がダウンロードされ、これが利用されます。
+1. You can specify your own "bin" file by making a path ```EmbeddingWeightsPath``` in the example.sh file.
 ```
-## Embedding Weights Type (fastText .bin and .vec)
+## Embedding Weights Type (fastText .bin)
 EmbeddingWeightsPath=./Word_embedding/
 ```
 
+## Learning by using your own data
+### Data
+ 
+* Training data: tagged training data
+* Validation data: tagged validation data
+    * Please see [Early Stopping](https://docs.chainer.org/en/stable/reference/generated/chainer.training.triggers.EarlyStoppingTrigger.html)
+* Test data:  test data for categorization
 
 
+### Format
+The data format is:
+* The first column: category labels. 
+    * Each label is split by ",".
+* The second column: document.
+    * Each word in the document is split by a space, " ".
 
-## 新しいデータでモデルを学習
-### データについて
-#### 種類
-必要な文書データは3種類です:
-* 訓練データ : CNNを学習させるために必要なデータ
-* 評価データ: CNNの汎化性能を検証するために必要なデータ
-* テストデータ : CNNを用いて分類したいデータ
+Each column is split by Tab(\t).
 
-評価データは各エポックごとにCNNの汎化誤差を評価する際に用いられ、学習の継続によって過学習が起きた場合に[Early Stopping](https://docs.chainer.org/en/stable/reference/generated/chainer.training.triggers.EarlyStoppingTrigger.html)を行います. また保存されるCNNのパラメータは汎化誤差が最も小さい時のエポックのものが保存されます．
-
-#### 形式
-文書データの入力形式は次のとおりです. 各列はTab(\t)区切りです. Sample_dataに実例があります.
-* 1列目: 文書のラベル. マルチラベルに対応. 各ラベルはカンマ(,)区切り
-* 2列目: 文書. 各単語はスペース区切り
-
-例)
+Example)
 ```
 LABEL1  I am a boy .
 LABEL2,LABEL6  This is my pen .
 LABEL3,LABEL1   ...
 ```
 
-### 文書データが階層構造を有する場合
-分類する文書データが階層構造を有する場合, 階層構造を利用した学習モデル(WoFTモデル, HFTモデル)を利用することができます.
-```example.sh```では```TREE/Amazon_all.tree```を読み込みで学習モデルを構築します.
-
-1行に1ラベルが書かれます.
-ラベルは```<```によって階層が分けられます.
-例えば
-```A<B<C```
-であれば第3階層のCラベルを意味します.
-
-```example.sh```の```TreefilePath```を書き換えることで独自の木構造を読み込むことが可能です.
+### Hierarchical structure
+When your data has a hierarchical structure, you can use my WoFT model and HTF model. Please see "TREE/Amazon_all.tree".
+You can use your own hierarchical structure by overwriting "TreefilePath" in the example.sh file.
 
 ## License
 MIT
-
-
