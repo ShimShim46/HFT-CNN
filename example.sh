@@ -4,7 +4,7 @@ Train=${DataDIR}/sample_train.txt
 Test=${DataDIR}/sample_test.txt
 Valid=${DataDIR}/sample_valid.txt
 
-## Embedding Weights Type (fastText .bin and .vec)
+## Embedding Weights Type (fastText .bin)
 EmbeddingWeightsPath=./Word_embedding/
 ## Network Type (XML-CNN,  CNN-Flat,  CNN-Hierarchy,  CNN-fine-tuning or Pre-process)
 ModelType=CNN-Flat
