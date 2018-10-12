@@ -1,21 +1,20 @@
 import copy
-
-import six
-
-from chainer import configuration
-from chainer.dataset import convert
-from chainer.dataset import iterator as iterator_module
-from chainer import functions as F
-from chainer import function
-from chainer import link
-from chainer import reporter as reporter_module
-from chainer.training import extensions
-from chainer.training import extension
-from chainer import cuda
-import numpy as np
-import scipy.sparse as sp
 import pdb
 
+import numpy as np
+import scipy.sparse as sp
+import six
+from chainer import configuration, cuda, function
+from chainer import functions as F
+from chainer import link
+from chainer import reporter as reporter_module
+from chainer.dataset import convert
+from chainer.dataset import iterator as iterator_module
+from chainer.training import extension, extensions
+
+
+# 検証データのloss値を計算
+# =========================================================
 class MyEvaluator(extensions.Evaluator):
 
     trigger = 1, 'epoch'
@@ -64,7 +63,7 @@ class MyEvaluator(extensions.Evaluator):
                 labels = [l[1] for l in batch]
                 for i in range(len(labels)):
                     l_list = list(set(labels[i]))
-                    for y in l_list:                   
+                    for y in l_list:
                         row_idx.append(i)
                         col_idx.append(y)
                         val_idx.append(1)

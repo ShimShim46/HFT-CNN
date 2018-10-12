@@ -1,18 +1,21 @@
-import six
-import numpy as np
+import pdb
+
 import chainer
 import chainer.functions as F
 import chainer.links as L
-from chainer import cuda, training, reporter
-from chainer.datasets import get_mnist
-from chainer.training import trainer, extensions
+import numpy as np
+import scipy.sparse as sp
+import six
+from chainer import cuda
+from chainer import optimizer as optimizer_module
+from chainer import reporter, training
 from chainer.dataset import convert
 from chainer.dataset import iterator as iterator_module
 from chainer.datasets import get_mnist
-from chainer import optimizer as optimizer_module
-import scipy.sparse as sp
-import pdb
+from chainer.training import extensions, trainer
 
+# CNNの1イテレーションの処理
+# =========================================================
 class MyUpdater(training.StandardUpdater):
     def __init__(self, iterator, optimizer, class_dim, converter=convert.concat_examples,
                 device=None, loss_func=None):
@@ -59,4 +62,3 @@ class MyUpdater(training.StandardUpdater):
         chainer.reporter.report({'main/loss':loss})
         loss.backward()
         optimizer.update()
-
