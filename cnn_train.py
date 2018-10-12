@@ -1,23 +1,29 @@
 #!/usr/bin/env python
 
 
+import os.path
+import random
+import shutil
+
 import chainer
 import chainer.functions as F
 import chainer.links as L
-from chainer import training
-from chainer.training import extensions
 import numpy as np
-import os.path
 import six
+from chainer import training
 from chainer.datasets import tuple_dataset
+from chainer.training import extensions
 from tqdm import tqdm
-import shutil
-import random
+
 import cnn_model
 import xml_cnn_model
+from MyEvaluator import MyEvaluator
+from MyUpdater import MyUpdater
 
 USE_CUDNN = 'never' ## always, auto, or never
 
+# しきい値(0.5)よりも値が大きなニューロンを取得
+# =========================================================
 def select_function(scores):
     scores = chainer.cuda.to_cpu(scores)
     np_predicts = np.zeros(scores.shape,dtype=np.int8)
@@ -25,60 +31,64 @@ def select_function(scores):
         np_predicts[i] = (scores[i] >= 0.5)
     return np_predicts
 
+# 乱数のシード値を設定
+# =========================================================
 def set_seed_random(seed):
         random.seed(seed)
         np.random.seed(seed)
         if chainer.cuda.available:
             chainer.cuda.cupy.random.seed(seed)
 
+# CNN学習のメイン関数
+# =========================================================
 def main(params):
     print("")   
     print('# gpu: {}'.format(params["gpu"]))
     print('# unit: {}'.format(params["unit"]))
     print('# batch-size: {}'.format(params["batchsize"]))
     print('# epoch: {}'.format(params["epoch"]))
-    print('# number of category: {}'.format(params["output-dimensions"]))
-    print('# embedding dimension: {}'.format(params["embedding-dimensions"]))
-    print('# current layer: {}'.format(params["currentDepth"]))
-    print('# model-type: {}'.format(params["model-type"]))
+    print('# number of category: {}'.format(params["output_dimensions"]))
+    print('# embedding dimension: {}'.format(params["embedding_dimensions"]))
+    print('# current layer: {}'.format(params["current_depth"]))
+    print('# model-type: {}'.format(params["model_type"]))
     print('')
 
 
-    f = open('./CNN/LOG/configuration_' + params["currentDepth"] + '.txt', 'w')
+    f = open('./CNN/LOG/configuration_' + params["current_depth"] + '.txt', 'w')
     f.write('# gpu: {}'.format(params["gpu"])+"\n")
     f.write('# unit: {}'.format(params["unit"])+"\n")
     f.write('# batch-size: {}'.format(params["batchsize"])+"\n")
     f.write('# epoch: {}'.format(params["epoch"])+"\n")
-    f.write('# number of category: {}'.format(params["output-dimensions"])+"\n")
-    f.write('# embedding dimension: {}'.format(params["embedding-dimensions"])+"\n")
-    f.write('# current layer: {}'.format(params["currentDepth"])+"\n")
-    f.write('# model-type: {}'.format(params["model-type"])+"\n")
+    f.write('# number of category: {}'.format(params["output_dimensions"])+"\n")
+    f.write('# embedding dimension: {}'.format(params["embedding_dimensions"])+"\n")
+    f.write('# current layer: {}'.format(params["current_depth"])+"\n")
+    f.write('# model-type: {}'.format(params["model_type"])+"\n")
     f.write("\n")
     f.close()
 
-    embeddingWeights = params["embeddingWeights"]
-    embeddingDimensions = params["embedding-dimensions"]
-    inputData = params["inputData"]
-    x_train = inputData['X_trn']
-    x_test = inputData['X_val']
-    y_train = inputData['Y_trn']
-    y_test = inputData['Y_val']
-                
+    embedding_weights = params["embedding_weights"]
+    embedding_dimensions = params["embedding_dimensions"]
+    input_data = params["input_data"]
+    x_train = input_data['x_trn']
+    x_val = input_data['x_val']
+    y_train = input_data['y_trn']
+    y_val = input_data['y_val']
+
     cnn_params = {"cudnn":USE_CUDNN, 
-                "out_channels":params["outchannels"],
-                "row_dim":embeddingDimensions, 
+                "out_channels":params["out_channels"],
+                "row_dim":embedding_dimensions, 
                 "batch_size":params["batchsize"],
                 "hidden_dim":params["unit"],
-                "n_classes":params["output-dimensions"],
-                "embeddingWeights":embeddingWeights,
+                "n_classes":params["output_dimensions"],
+                "embedding_weights":embedding_weights,
                 }
-    if params["fineTuning"] == 0:
+    if params["fine_tuning"] == 0:
         cnn_params['mode'] = 'scratch'
-    elif params["fineTuning"] == 1:
+    elif params["fine_tuning"] == 1:
         cnn_params['mode'] = 'fine-tuning'
-        cnn_params['load_param_node_name'] = params['upperDepth']
+        cnn_params['load_param_node_name'] = params['upper_depth']
         
-    if params["model-type"] == "XML-CNN":
+    if params["model_type"] == "XML-CNN":
         model = xml_cnn_model.CNN(**cnn_params)
     else:
         model = cnn_model.CNN(**cnn_params)
@@ -87,31 +97,36 @@ def main(params):
         chainer.cuda.get_device_from_id(params["gpu"]).use()
         model.to_gpu()
     
+    # 訓練データと検証データを使ったCNNの学習
+    # =========================================================
+
     optimizer = chainer.optimizers.Adam()
     optimizer.setup(model)
 
     train = tuple_dataset.TupleDataset(x_train, y_train)
-    test = tuple_dataset.TupleDataset(x_test, y_test)
+    val = tuple_dataset.TupleDataset(x_val, y_val)
     
     train_iter = chainer.iterators.SerialIterator(train, params["batchsize"], repeat=True, shuffle=False)
-    test_iter = chainer.iterators.SerialIterator(test, params["batchsize"], repeat = False, shuffle=False)
+    val_iter = chainer.iterators.SerialIterator(val, params["batchsize"], repeat = False, shuffle=False)
     
+    # Early Stoppingの設定. validation/main/lossが検証データのloss値
+    # =========================================================
     stop_trigger = training.triggers.EarlyStoppingTrigger(
     monitor='validation/main/loss',
     max_trigger=(params["epoch"], 'epoch'))
 
 
-    from MyUpdater import MyUpdater
-    updater = MyUpdater(train_iter, optimizer, params["output-dimensions"], device=params["gpu"])
-    trainer = training.Trainer(updater, stop_trigger, out='./CNN/')
     
-    from MyEvaluator import MyEvaluator
-    trainer.extend(MyEvaluator(test_iter, model, class_dim=params["output-dimensions"], device=params["gpu"]))
+    updater = MyUpdater(train_iter, optimizer, params["output_dimensions"], device=params["gpu"])
+    trainer = training.Trainer(updater, stop_trigger, out='./CNN/')
+
+
+    trainer.extend(MyEvaluator(val_iter, model, class_dim=params["output_dimensions"], device=params["gpu"]))
     trainer.extend(extensions.dump_graph('main/loss'))
 
-    trainer.extend(extensions.snapshot_object(model, 'parameters_for_multi_label_model_' + params["currentDepth"] + '.npz'),trigger=training.triggers.MinValueTrigger('validation/main/loss',trigger=(1,'epoch')))
+    trainer.extend(extensions.snapshot_object(model, 'parameters_for_multi_label_model_' + params["current_depth"] + '.npz'),trigger=training.triggers.MinValueTrigger('validation/main/loss',trigger=(1,'epoch')))
 
-    trainer.extend(extensions.LogReport(log_name='LOG/log_' + params["currentDepth"] + ".txt", trigger=(1, 'epoch')))
+    trainer.extend(extensions.LogReport(log_name='LOG/log_' + params["current_depth"] + ".txt", trigger=(1, 'epoch')))
 
     trainer.extend(extensions.PrintReport(
         ['epoch', 'main/loss', 'validation/main/loss',
@@ -120,42 +135,44 @@ def main(params):
 
     trainer.extend(
     extensions.PlotReport(['main/loss', 'validation/main/loss'],
-                          'epoch', file_name='LOG/loss_' + params["currentDepth"] + '.png'))
+                          'epoch', file_name='LOG/loss_' + params["current_depth"] + '.png'))
     
     trainer.run()
 
 
-    filename = 'parameters_for_multi_label_model_' + params["currentDepth"] + '.npz'
+    filename = 'parameters_for_multi_label_model_' + params["current_depth"] + '.npz'
     src = './CNN/'
     dst = './CNN/PARAMS'
     shutil.move(os.path.join(src, filename), os.path.join(dst, filename))
 
+    # テストデータの推論
+    # =========================================================
     print ("-"*50)
     print ("Testing...")
     
-    X_tst = inputData['X_tst']
-    Y_tst = inputData['Y_tst']
-    N_eval = len(X_tst)
+    x_tst = input_data['x_tst']
+    y_tst = input_data['y_tst']
+    n_eval = len(x_tst)
 
     cnn_params['mode'] = 'test-predict'
-    cnn_params['load_param_node_name'] = params["currentDepth"]
+    cnn_params['load_param_node_name'] = params["current_depth"]
     
-    if params["model-type"] == "XML-CNN":
+    if params["model_type"] == "XML-CNN":
         model = xml_cnn_model.CNN(**cnn_params)
     else:
         model = cnn_model.CNN(**cnn_params)
 
     model.to_gpu()
-    output = np.zeros([N_eval,params["output-dimensions"]],dtype=np.int8)
-    output_probability_file_name = "CNN/RESULT/probability_" + params["currentDepth"] + ".csv"
+    output = np.zeros([n_eval,params["output_dimensions"]],dtype=np.int8)
+    output_probability_file_name = "CNN/RESULT/probability_" + params["current_depth"] + ".csv"
     with open(output_probability_file_name, 'w') as f:
         f.write(','.join(params["learning_categories"])+"\n")
  
     test_batch_size = params["batchsize"]
     with chainer.using_config('train', False), chainer.no_backprop_mode():
-        for i in tqdm(six.moves.range(0, N_eval, test_batch_size),desc="Predict Test loop"):
-            x = chainer.Variable(chainer.cuda.to_gpu(X_tst[i:i + test_batch_size]))
-            t = Y_tst[i:i + test_batch_size]
+        for i in tqdm(six.moves.range(0, n_eval, test_batch_size),desc="Predict Test loop"):
+            x = chainer.Variable(chainer.cuda.to_gpu(x_tst[i:i + test_batch_size]))
+            t = y_tst[i:i + test_batch_size]
             net_output = F.sigmoid(model(x))
             output[i: i + test_batch_size] = select_function(net_output.data)
             with open(output_probability_file_name , 'a') as f:
@@ -165,43 +182,45 @@ def main(params):
                 np.savetxt(f,tmp,fmt='%.4g',delimiter=",")
     return output
 
+# WoFtモデルとHFTモデルの第一階層の分類を実施
+# =========================================================
 def  load_top_level_weights(params):
     print ("-"*50)
     print ("Testing...")
 
-    embeddingWeights = params["embeddingWeights"]
-    embeddingDimensions = params["embedding-dimensions"]
-    inputData = params["inputData"]
+    embedding_weights = params["embedding_weights"]
+    embedding_dimensions = params["embedding_dimensions"]
+    input_data = params["input_data"]
 
     cnn_params = {"cudnn":USE_CUDNN, 
-                "out_channels":params["outchannels"],
-                "row_dim":embeddingDimensions, 
+                "out_channels":params["out_channels"],
+                "row_dim":embedding_dimensions, 
                 "batch_size":params["batchsize"],
                 "hidden_dim":params["unit"],
-                "n_classes":params["output-dimensions"],
-                "embeddingWeights":embeddingWeights,
+                "n_classes":params["output_dimensions"],
+                "embedding_weights":embedding_weights,
                 }
-                   
-    X_tst = inputData['X_tst']
-    Y_tst = inputData['Y_tst']
-    N_eval = len(X_tst)
+
+    x_tst = input_data['x_tst']
+    y_tst = input_data['y_tst']
+    n_eval = len(x_tst)
 
     cnn_params['mode'] = 'test-predict'
-    cnn_params['load_param_node_name'] = params["currentDepth"]
-    if params["model-type"] == "XML-CNN":
+    cnn_params['load_param_node_name'] = params["current_depth"]
+    if params["model_type"] == "XML-CNN":
         model = xml_cnn_model.CNN(**cnn_params)
     else:
         model = cnn_model.CNN(**cnn_params)
 
     model.to_gpu()
-    output = np.zeros([N_eval,params["output-dimensions"]],dtype=np.int8)
-    output_probability_file_name = "CNN/RESULT/probability_" + params["currentDepth"] + ".csv"
+    output = np.zeros([n_eval,params["output_dimensions"]],dtype=np.int8)
+    output_probability_file_name = "CNN/RESULT/probability_" + params["current_depth"] + ".csv"
     with open(output_probability_file_name, 'w') as f:
         f.write(','.join(params["learning_categories"])+"\n")
         
     test_batch_size = params["batchsize"]
     with chainer.using_config('train', False), chainer.no_backprop_mode():
-        for i in tqdm(six.moves.range(0, N_eval, test_batch_size),desc="Predict Test loop"):
+        for i in tqdm(six.moves.range(0, n_eval, test_batch_size),desc="Predict Test loop"):
             x = chainer.Variable(chainer.cuda.to_gpu(X_tst[i:i + params["batchsize"]]))
             t = Y_tst[i:i + test_batch_size]
             net_output = F.sigmoid(model(x))
@@ -212,6 +231,3 @@ def  load_top_level_weights(params):
                 tmp[low_values_flags] = 0
                 np.savetxt(f,tmp,fmt='%.4g',delimiter=",")
     return output
-
-
-
