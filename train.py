@@ -1,45 +1,51 @@
 #!/usr/bin/env python
+import os
+import random
 import sys
 from collections import defaultdict
-import numpy as np
-import data_helper
-import cnn_train
-import random
-import scipy.sparse as sp
-import tree
-import os
 
-def train_problem(currentDepth, upperDepth, classNum, fineTuning, embeddingWeights, inputData, modelType, learning_categories):
+import numpy as np
+import scipy.sparse as sp
+
+import cnn_train
+import data_helper
+import tree
+
+# CNNの学習
+# =========================================================
+def train_problem(current_depth, upper_depth, class_num, fine_tuning, embedding_weights, input_data, model_type, learning_categories):
     params = {"gpu":0, 
-                "outchannels":128,
-                "embedding-dimensions":300, 
+                "out_channels":128,
+                "embedding_dimensions":300, 
                 "epoch":40, 
                 "batchsize":100,
                 "unit":1024, 
-                "output-dimensions":int(classNum), 
-                "fineTuning":int(fineTuning), 
-                "currentDepth":currentDepth, 
-                "upperDepth":upperDepth, 
-                "embeddingWeights": embeddingWeights,
-                "inputData": inputData,
-                "model-type": modelType,
+                "output_dimensions":int(class_num), 
+                "fine_tuning":int(fine_tuning), 
+                "current_depth":current_depth, 
+                "upper_depth":upper_depth, 
+                "embedding_weight": embedding_weight,
+                "input_data": input_data,
+                "model_type":_model_type,
                 "learning_categories": learning_categories
                 }
-    if params["model-type"] == "XML-CNN":
+    if params["model_type"] == "XML-CNN":
         params["unit"] = 512 # compact representation
-    if (params["model-type"] == "CNN-fine-tuning") and (currentDepth == "1st"):
-        params["fineTuning"] = 0
+    if (params["model_type"] == "CNN-fine-tuning") and (current_depth == "1st"):
+        params["fine_tuning"] = 0
 
-    if (currentDepth == "1st") and ((params["model-type"] == "CNN-fine-tuning") or  (params["model-type"] == "CNN-Hierarchy")):
+    if (current_depth == "1st") and ((params["model_type"] == "CNN-fine-tuning") or  (params["model_type"] == "CNN-Hierarchy")):
         network_output = cnn_train.load_top_level_weights(params)
     else:
         network_output = cnn_train.main(params)
     
     return network_output
 
-def make_labels_hie_info_dic(treePath):
+# 各ラベルと階層の深さとの対応を保存した辞書を作成
+# =========================================================
+def make_labels_hie_info_dic(tree_path):
         label_hierarchical_info_dic = {}
-        with open(treePath, "r") as f:
+        with open(tree_path, "r") as f:
             for line in f:
                 line = line[:-1]
                 category = line.split("<")[-1]
@@ -47,7 +53,8 @@ def make_labels_hie_info_dic(treePath):
                 if category not in label_hierarchical_info_dic:
                         label_hierarchical_info_dic[category] = level
         return label_hierarchical_info_dic
-
+# 階層の深さと各ラベルとの対応を保存した辞書を作成
+# =========================================================
 def make_labels_hie_list_dic(labels, label_hierarchical_info_dic):
         layer_category_list_dic = {}
         for i in range(1,max(label_hierarchical_info_dic.values())+1):
@@ -58,9 +65,11 @@ def make_labels_hie_list_dic(labels, label_hierarchical_info_dic):
     
         return layer_category_list_dic
 
-def make_tree(treeFile_path):
+# 階層構造を作成
+# =========================================================
+def make_tree(tree_file_path):
     Tree = tree.make()
-    with open(treeFile_path, mode="r") as f:
+    with open(tree_file_path, mode="r") as f:
         for line in f:
             line = line[:-1]
             line = line.split("\t")[0]
@@ -79,21 +88,21 @@ def main():
 
     # Loading data
     # ==========================================================
-    print ('-'*50)
-    print ('Loading data...')
+    print ("-"*50)
+    print ("Loading data...")
     train = sys.argv[1]
     test = sys.argv[2]
     validation = sys.argv[3]
-    embeddingWeights_path = sys.argv[4]
-    modelType = sys.argv[5]
-    treeFile_path = sys.argv[6]
-    useWords = int(sys.argv[7])
+    embedding_weight_path = sys.argv[4]
+    model_type = sys.argv[5]
+    tree_file_path = sys.argv[6]
+    use_words = int(sys.argv[7])
 
-    f_train = open(train, 'r')
+    f_train = open(train, "r")
     train_lines = f_train.readlines()
-    f_test = open(test, 'r')
+    f_test = open(test, "r")
     test_lines = f_test.readlines()
-    f_valid = open(validation, 'r')
+    f_valid = open(validation, "r")
     valid_lines = f_valid.readlines()
     f_train.close()
     f_test.close()
@@ -101,98 +110,97 @@ def main():
 
     # Building Hierarchical information
     # =========================================================
-    category_hie_info_dic = make_labels_hie_info_dic(treeFile_path)
-    input_data_dic = data_helper.data_load(train_lines, valid_lines, test_lines, category_hie_info_dic, useWords)
-    category_hie_list_dic = make_labels_hie_list_dic(list(input_data_dic['catgy'].keys()), category_hie_info_dic)
+    category_hie_info_dic = make_labels_hie_info_dic(tree_file_path)
+    input_data_dic = data_helper.data_load(train_lines, valid_lines, test_lines, category_hie_info_dic, use_words)
+    category_hie_list_dic = make_labels_hie_list_dic(list(input_data_dic["catgy"].keys()), category_hie_info_dic)
     # Loading Word embeddings
     # =========================================================
-    print ('-'*50)
+    print ("-"*50)
     print ("Loading Word embedings...")
-    embeddingWeights=data_helper.embedding_weights_load(input_data_dic['vocab'], embeddingWeights_path)
+    embedding_weight = data_helper.embedding_weights_load(input_data_dic["vocab"], embedding_weight_path)
 
     # Conditions of each model
     # =========================================================
-    fineTuning = 0
-    if modelType == "XML-CNN" or modelType == "CNN-Flat":
-        categorizationType="flat"
-        fineTuning = 0
-    elif modelType == "CNN-Hierarchy":
-        categorizationType="hierarchy"
-        fineTuning = 0
-    elif modelType == "CNN-fine-tuning":
-        categorizationType="hierarchy"
-        fineTuning = 1
-    elif modelType == "Pre-process":
-        categorizationType = "pre-process"
-        fineTuning = 0
+    fine_tuning = 0
+    if model_type == "XML-CNN" or model_type == "CNN-Flat":
+        categorization_type="flat"
+        fine_tuning = 0
+    elif model_type == "CNN-Hierarchy":
+        categorization_type="hierarchy"
+        fine_tuning = 0
+    elif model_type == "CNN-fine-tuning":
+        categorization_type="hierarchy"
+        fine_tuning = 1
+    elif tmodel_type == "Pre-process":
+        categorization_type = "pre-process"
+        fine_tuning = 0
     else:
-        raise TypeError('Unknown model type: %s!' % (modelType))
+        raise TypeError("Unknown model type: %s!" % model_type)
 
-    
     # Processing in case of pro-processing
     # ========================================================
-    if categorizationType == "pre-process":
-        print ('-'*50)
+    if categorization_type == "pre-process":
+        print ("-"*50)
         print ("Pre-process for hierarchical categorization...")
-        Tree = make_tree(treeFile_path)
+        Tree = make_tree(tree_file_path)
         layer = 1
         depth = data_helper.order_n(1)
-        upperDepth = None
+        upper_depth = None
         learning_categories = sorted(category_hie_list_dic[layer])
-        X_trn, Y_trn, X_val, Y_val, X_tst, Y_tst =  data_helper.build_problem(learning_categories=learning_categories,depth=depth, input_data_dic=input_data_dic)
-        input_network_data = {"X_trn":X_trn, "Y_trn":Y_trn, "X_val":X_val, "Y_val":Y_val, "X_tst":X_tst, "Y_tst":Y_tst}
-        Y_pred = train_problem(currentDepth=depth, upperDepth=upperDepth, classNum=len(learning_categories), fineTuning=fineTuning, embeddingWeights=embeddingWeights, inputData=input_network_data, modelType=modelType, learning_categories=learning_categories)
+        x_trn, y_trn, x_val, y_val, x_tst, y_tst =  data_helper.build_problem(learning_categories=learning_categories,depth=depth, input_data_dic=input_data_dic)
+        input_network_data = {"x_trn":x_trn, "y_trn":y_trn, "x_val":x_val, "y_val":y_val, "x_tst":x_tst, "y_tst":y_tst}
+        y_pred = train_problem(currentDept_d=depth, upper_depth=upper_depth, class_num=len(learning_categories), fine_tuning=fine_tuning, embedding_weight=embeddingWeight_w, input_data=input_network_data, model_type=model_type, learning_categories=learning_categories)
         print ("Please change model-type to CNN-Hierarchy of CNN-fine-tuning.")
     
     
     # Processing in case of flat categorization
     # ========================================================
-    elif categorizationType == "flat":
-        print ('-'*50)
+    elif categorization_type == "flat":
+        print ("-"*50)
         print ("Processing in case of flat categorization...")
         from itertools import chain
-        learning_categories = sorted(input_data_dic['catgy'].keys()) ## this order is network's output order.
-        X_trn, Y_trn, X_val, Y_val, X_tst, Y_tst =  data_helper.build_problem(learning_categories=learning_categories,depth="flat", input_data_dic=input_data_dic)
-        input_network_data = {"X_trn":X_trn, "Y_trn":Y_trn, "X_val":X_val, "Y_val":Y_val, "X_tst":X_tst, "Y_tst":Y_tst}
-        Y_pred = train_problem(currentDepth="flat", upperDepth=None, classNum=len(learning_categories), fineTuning=fineTuning, embeddingWeights=embeddingWeights, inputData=input_network_data, modelType=modelType, learning_categories=learning_categories)
-        GrandLabels, PredResult = data_helper.get_catgy_mapping(learning_categories, Y_tst, Y_pred, "flat")
-        data_helper.write_out_prediction(GrandLabels, PredResult, input_data_dic)
+        learning_categories = sorted(input_data_dic["catgy"].keys()) ## this order is network"s output order.
+        x_trn, y_trn, x_val, y_val, x_tst, y_tst =  data_helper.build_problem(learning_categories=learning_categories,depth="flat", input_data_dic=input_data_dic)
+        input_network_data = {"x_trn":x_trn, "y_trn":y_trn, "x_val":x_val, "y_val":y_val, "x_tst":x_tst, "y_tst":y_tst}
+        y_pred = train_problem(currentDept_d="flat", upper_depth=None, class_num=len(learning_categories), fine_tuning=fine_tuning, embedding_weight=embeddingWeight_w, input_data=input_network_data, model_type=model_type, learning_categories=learning_categories)
+        grand_labels, pred_result = data_helper.get_catgy_mapping(learning_categories, y_tst, y_pred, "flat")
+        data_helper.write_out_prediction(grand_labels, pred_result, input_data_dic)
         
     # Processing in case of hierarchical categorization
     # ========================================================
-    elif categorizationType == "hierarchy":
+    elif categorization_type == "hierarchy":
         if not os.path.exists("./CNN/PARAMS/parameters_for_multi_label_model_1st.npz"):
-            raise FileNotFoundError('Please change "ModelType=CNN-Hierarchy" or "ModelType=CNN-fine-tuning" to "ModelType=Pre-process" in example.sh.')
-        print ('-'*50)
+            raise FileNotFoundError('Please change _tModelType=CNN-Hierarchy" or _tModelType=CNN-fine-tuning" to _tModelType=Pre-process" in example.sh.')
+        print ("-"*50)
         print ("Processing in case of hierarchical categorization...")
-        upperDepth = None
-        Y_tst_concat = [[] for i in range(len(input_data_dic['test']))]
-        Y_pred_concat = [[] for i in range(len(input_data_dic['test']))]
+        upper_depth = None
+        y_tst_concat = [[] for i in range(len(input_data_dic["test"]))]
+        y_pred_concat = [[] for i in range(len(input_data_dic["test"]))]
         all_categories = []
-        Tree = make_tree(treeFile_path)
+        Tree = make_tree(tree_file_path)
         layers = list(category_hie_list_dic.keys())
         for layer in layers:
             depth = data_helper.order_n(layer)
-            print ('-'*50)
-            print ('Learning and categorization processing of ' + depth + ' layer')
+            print ("-"*50)
+            print ("Learning and categorization processing of " + depth + " layer")
             learning_categories = sorted(category_hie_list_dic[layer])
-            X_trn, Y_trn, X_val, Y_val, X_tst, Y_tst =  data_helper.build_problem(learning_categories=learning_categories,depth=depth, input_data_dic=input_data_dic)
-            input_network_data = {"X_trn":X_trn, "Y_trn":Y_trn, "X_val":X_val, "Y_val":Y_val, "X_tst":X_tst, "Y_tst":Y_tst}
-            Y_pred = train_problem(currentDepth=depth, upperDepth=upperDepth, classNum=len(learning_categories), fineTuning=fineTuning, embeddingWeights=embeddingWeights, inputData=input_network_data, modelType=modelType, learning_categories=learning_categories)
-            GrandLabels, PredResult = data_helper.get_catgy_mapping(learning_categories, Y_tst, Y_pred, depth)
-            upperDepth = depth
-            for i in range(len(input_data_dic['test'])):
-                Y_tst_concat[i].extend(GrandLabels[i])
-            for i in range(len(input_data_dic['test'])):
-                for y in PredResult[i]:
-                    if (tree.search_parent(Tree, y) in Y_pred_concat[i]) or (tree.search_parent(Tree, y) == 'root'):
-                        Y_pred_concat[i].append(y)
+            x_trn, y_trn, x_val, y_val, x_tst, y_tst =  data_helper.build_problem(learning_categories=learning_categories,depth=depth, input_data_dic=input_data_dic)
+            input_network_data = {"x_trn":x_trn, "y_trn":y_trn, "x_val":x_val, "y_val":y_val, "x_tst":x_tst, "y_tst":y_tst}
+            y_pred = train_problem(current_depth=depth, upper_depth=upper_depth, class_num=len(learning_categories), fine_tuning=fine_tuning, embedding_weight=embeddingWeight_w, input_data=input_network_data, model_type=model_type, learning_categories=learning_categories)
+            grand_labels, pred_result = data_helper.get_catgy_mapping(learning_categories, y_tst, y_pred, depth)
+            upper_depth = depth
+            for i in range(len(input_data_dic["test"])):
+                y_tst_concat[i].extend(grand_labels[i])
+            for i in range(len(input_data_dic["test"])):
+                for y in pred_result[i]:
+                    if (tree.search_parent(Tree, y) in y_pred_concat[i]) or (tree.search_parent(Tree, y) == "root"):
+                        y_pred_concat[i].append(y)
 
             all_categories += learning_categories
         
-        print ('-'*50)
-        print ('Final Result')
-        data_helper.write_out_prediction(Y_tst_concat, Y_pred_concat, input_data_dic)
+        print ("-"*50)
+        print ("Final Result")
+        data_helper.write_out_prediction(y_tst_concat, y_pred_concat, input_data_dic)
 
 if __name__ == "__main__":
-        main()
+    main()
