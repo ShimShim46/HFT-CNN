@@ -3,7 +3,7 @@ import pdb
 import re
 from collections import defaultdict
 from itertools import chain
-
+import pickle
 import chakin
 import numpy as np
 import scipy.sparse as sp
@@ -90,7 +90,13 @@ def embedding_weights_load(words_map,embedding_weights_path):
             print ("Downloading wikipedia(en) pre-trained word vectors.")
             chakin.download(number=2, save_dir="./Word_embedding")
         print ("Loading vectors...")
-        model =  KeyedVectors.load_word2vec_format('./Word_embedding/wiki.en.vec')
+        if os.path.exists("./Word_embedding_model.pkl"):
+            with open("./Word_embedding_model.pkl", mode="rb") as f:
+                model = pickle.load(f)
+        else:
+            model =  KeyedVectors.load_word2vec_format('./Word_embedding/wiki.en.vec')
+            with open("Word_embedding_model.pkl", mode="wb") as f:
+                pickle.dump(model, f)
         pre_trained_embedding = "txt"
 
     vocab_size = len(words_map)

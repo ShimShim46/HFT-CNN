@@ -66,7 +66,7 @@ def main(params):
     f.write("\n")
     f.close()
 
-    embedding_weights = params["embedding_weights"]
+    embedding_weight = params["embedding_weight"]
     embedding_dimensions = params["embedding_dimensions"]
     input_data = params["input_data"]
     x_train = input_data['x_trn']
@@ -80,7 +80,7 @@ def main(params):
                 "batch_size":params["batchsize"],
                 "hidden_dim":params["unit"],
                 "n_classes":params["output_dimensions"],
-                "embedding_weights":embedding_weights,
+                "embedding_weight":embedding_weight,
                 }
     if params["fine_tuning"] == 0:
         cnn_params['mode'] = 'scratch'
@@ -188,7 +188,7 @@ def  load_top_level_weights(params):
     print ("-"*50)
     print ("Testing...")
 
-    embedding_weights = params["embedding_weights"]
+    embedding_weight = params["embedding_weight"]
     embedding_dimensions = params["embedding_dimensions"]
     input_data = params["input_data"]
 
@@ -198,7 +198,7 @@ def  load_top_level_weights(params):
                 "batch_size":params["batchsize"],
                 "hidden_dim":params["unit"],
                 "n_classes":params["output_dimensions"],
-                "embedding_weights":embedding_weights,
+                "embedding_weight":embedding_weight,
                 }
 
     x_tst = input_data['x_tst']

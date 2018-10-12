@@ -20,7 +20,7 @@ class CNN(chainer.Chain):
             self.mode = params["mode"] if "mode" in params else None
             self.load_param_node_name = params["load_param_node_name"] if "load_param_node_name" in params else None 
             self.cudnn = params["cudnn"] if "cudnn" in params else 'never'
-            self.embedding_weights = params["embedding_weights"]
+            self.embedding_weight = params["embedding_weight"]
             self.initializer = chainer.initializers.HeNormal()
             
             # ネットワーク定義
@@ -29,7 +29,7 @@ class CNN(chainer.Chain):
                 super(CNN, self).__init__()
                 set_seed_random(0)
                 with self.init_scope():
-                    self.lookup = L.EmbedID(in_size = self.embedding_weights.shape[0], out_size = self.embedding_weights.shape[1], initialW = self.embedding_weights, ignore_label = -1)
+                    self.lookup = L.EmbedID(in_size = self.embedding_weight.shape[0], out_size = self.embedding_weight.shape[1], initialW = self.embedding_weight, ignore_label = -1)
                     self.conv1 = L.Convolution2D(self.in_channels,self.out_channels,(2, self.row_dim), stride=2,initialW=self.initializer)
                     self.conv2 = L.Convolution2D(self.in_channels,self.out_channels,(3, self.row_dim), stride=2,initialW=self.initializer)
                     self.conv3 = L.Convolution2D(self.in_channels,self.out_channels,(4, self.row_dim), stride=2,initialW=self.initializer)
@@ -42,7 +42,7 @@ class CNN(chainer.Chain):
                 super(CNN, self).__init__()
                 set_seed_random(0)
                 with self.init_scope():
-                    self.lookup = L.EmbedID(in_size = self.embedding_weights.shape[0], out_size = self.embedding_weights.shape[1], initialW = parameters['lookup/W'], ignore_label = -1)
+                    self.lookup = L.EmbedID(in_size = self.embedding_weight.shape[0], out_size = self.embedding_weight.shape[1], initialW = parameters['lookup/W'], ignore_label = -1)
                     self.conv1 = L.Convolution2D(self.in_channels,self.out_channels,(2, self.row_dim),stride=2,initialW=parameters['conv1/W'],initial_bias=parameters['conv1/b'])   
                     self.conv2 = L.Convolution2D(self.in_channels,self.out_channels,(3, self.row_dim),stride=2,initialW=parameters['conv2/W'],initial_bias=parameters['conv2/b'])
                     self.conv3 = L.Convolution2D(self.in_channels,self.out_channels,(4, self.row_dim),stride=2,initialW=parameters['conv3/W'],initial_bias=parameters['conv3/b']) 

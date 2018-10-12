@@ -13,20 +13,20 @@ import tree
 
 # CNNの学習
 # =========================================================
-def train_problem(current_depth, upper_depth, class_num, fine_tuning, embedding_weights, input_data, model_type, learning_categories):
+def train_problem(current_depth, upper_depth, class_num, fine_tuning, embedding_weight, input_data, model_type, learning_categories):
     params = {"gpu":0, 
                 "out_channels":128,
                 "embedding_dimensions":300, 
                 "epoch":40, 
                 "batchsize":100,
                 "unit":1024, 
-                "output_dimensions":int(class_num), 
+                "output_dimensions": int(class_num), 
                 "fine_tuning":int(fine_tuning), 
-                "current_depth":current_depth, 
-                "upper_depth":upper_depth, 
+                "current_depth": current_depth, 
+                "upper_depth": upper_depth, 
                 "embedding_weight": embedding_weight,
                 "input_data": input_data,
-                "model_type":_model_type,
+                "model_type": model_type,
                 "learning_categories": learning_categories
                 }
     if params["model_type"] == "XML-CNN":
@@ -131,7 +131,7 @@ def main():
     elif model_type == "CNN-fine-tuning":
         categorization_type="hierarchy"
         fine_tuning = 1
-    elif tmodel_type == "Pre-process":
+    elif model_type == "Pre-process":
         categorization_type = "pre-process"
         fine_tuning = 0
     else:
@@ -149,7 +149,7 @@ def main():
         learning_categories = sorted(category_hie_list_dic[layer])
         x_trn, y_trn, x_val, y_val, x_tst, y_tst =  data_helper.build_problem(learning_categories=learning_categories,depth=depth, input_data_dic=input_data_dic)
         input_network_data = {"x_trn":x_trn, "y_trn":y_trn, "x_val":x_val, "y_val":y_val, "x_tst":x_tst, "y_tst":y_tst}
-        y_pred = train_problem(currentDept_d=depth, upper_depth=upper_depth, class_num=len(learning_categories), fine_tuning=fine_tuning, embedding_weight=embeddingWeight_w, input_data=input_network_data, model_type=model_type, learning_categories=learning_categories)
+        y_pred = train_problem(current_depth=depth, upper_depth=upper_depth, class_num=len(learning_categories), fine_tuning=fine_tuning, embedding_weight=embedding_weight, input_data=input_network_data, model_type=model_type, learning_categories=learning_categories)
         print ("Please change model-type to CNN-Hierarchy of CNN-fine-tuning.")
     
     
@@ -162,7 +162,7 @@ def main():
         learning_categories = sorted(input_data_dic["catgy"].keys()) ## this order is network"s output order.
         x_trn, y_trn, x_val, y_val, x_tst, y_tst =  data_helper.build_problem(learning_categories=learning_categories,depth="flat", input_data_dic=input_data_dic)
         input_network_data = {"x_trn":x_trn, "y_trn":y_trn, "x_val":x_val, "y_val":y_val, "x_tst":x_tst, "y_tst":y_tst}
-        y_pred = train_problem(currentDept_d="flat", upper_depth=None, class_num=len(learning_categories), fine_tuning=fine_tuning, embedding_weight=embeddingWeight_w, input_data=input_network_data, model_type=model_type, learning_categories=learning_categories)
+        y_pred = train_problem(current_depth="flat", upper_depth=None, class_num=len(learning_categories), fine_tuning=fine_tuning, embedding_weight=embedding_weight, input_data=input_network_data, model_type=model_type, learning_categories=learning_categories)
         grand_labels, pred_result = data_helper.get_catgy_mapping(learning_categories, y_tst, y_pred, "flat")
         data_helper.write_out_prediction(grand_labels, pred_result, input_data_dic)
         
@@ -186,7 +186,7 @@ def main():
             learning_categories = sorted(category_hie_list_dic[layer])
             x_trn, y_trn, x_val, y_val, x_tst, y_tst =  data_helper.build_problem(learning_categories=learning_categories,depth=depth, input_data_dic=input_data_dic)
             input_network_data = {"x_trn":x_trn, "y_trn":y_trn, "x_val":x_val, "y_val":y_val, "x_tst":x_tst, "y_tst":y_tst}
-            y_pred = train_problem(current_depth=depth, upper_depth=upper_depth, class_num=len(learning_categories), fine_tuning=fine_tuning, embedding_weight=embeddingWeight_w, input_data=input_network_data, model_type=model_type, learning_categories=learning_categories)
+            y_pred = train_problem(current_depth=depth, upper_depth=upper_depth, class_num=len(learning_categories), fine_tuning=fine_tuning, embedding_weight=embedding_weight, input_data=input_network_data, model_type=model_type, learning_categories=learning_categories)
             grand_labels, pred_result = data_helper.get_catgy_mapping(learning_categories, y_tst, y_pred, depth)
             upper_depth = depth
             for i in range(len(input_data_dic["test"])):
