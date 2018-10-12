@@ -1,18 +1,20 @@
-from gensim.models.wrappers.fasttext import FastText
-from gensim.models import KeyedVectors
-from tqdm import tqdm
-from collections import defaultdict
-import scipy.sparse as sp
-import numpy as np
-from  sklearn.metrics import f1_score
-from sklearn.metrics import classification_report
-from sklearn.preprocessing import MultiLabelBinarizer
-from itertools import chain
-import re
-import chakin
 import os
 import pdb
+import re
+from collections import defaultdict
+from itertools import chain
 
+import chakin
+import numpy as np
+import scipy.sparse as sp
+from gensim.models import KeyedVectors
+from gensim.models.wrappers.fasttext import FastText
+from sklearn.metrics import classification_report, f1_score
+from sklearn.preprocessing import MultiLabelBinarizer
+from tqdm import tqdm
+
+# 文字列の整形
+# =========================================================
 def clean_str(string):
     string = re.sub(r"[^A-Za-z0-9(),!?\'\`]", " ", string)
     string = re.sub(r"\'s", " \'s", string)
@@ -29,7 +31,9 @@ def clean_str(string):
     string = re.sub(r"\s{2,}", " ", string)
     return string.strip().lower()
 
-def  make_data_list(data, kind_of_data, tree_info, max_sen_len, vocab, catgy, articleID, useWords):
+# テキストファイルからデータの読み込み
+# =========================================================
+def  make_data_list(data, kind_of_data, tree_info, max_sen_len, vocab, catgy, article_id, useWords):
     data_list = []
     for line in tqdm(data,desc="Loading " + kind_of_data + " data"):
         tmp_dict = dict()
@@ -42,23 +46,23 @@ def  make_data_list(data, kind_of_data, tree_info, max_sen_len, vocab, catgy, ar
         tmp_dict['hie_info'] = list(set([tree_info[cat] for cat in line.split("\t")[0].split(",")]))
         tmp_dict['catgy'] = [cat for cat in line.split("\t")[0].split(",")]
         [catgy[cat] for cat in line.split("\t")[0].split(",")]
-        tmp_dict['id'] = str(articleID)        
-        articleID += 1
+        tmp_dict['id'] = str(article_id)
+        article_id += 1
         data_list.append(tmp_dict)
         del tmp_dict
-    return data_list, max_sen_len, vocab, catgy, articleID
+    return data_list, max_sen_len, vocab, catgy, article_id
 
-
-def data_load(train, valid, test, tree_info, useWords):
+# 各種データの読み込み
+# =========================================================
+def data_load(train, valid, test, tree_info, use_words):
     vocab = defaultdict( lambda: len(vocab) )
     catgy = defaultdict( lambda: len(catgy) )
-    articleID = 0
+    article_id = 0
     max_sen_len = 0
 
-    train_list, max_sen_len, vocab, catgy, articleID = make_data_list(train, 'train', tree_info, max_sen_len, vocab, catgy, articleID, useWords) 
-    valid_list, max_sen_len, vocab, catgy, articleID = make_data_list(valid, 'valid', tree_info, max_sen_len, vocab, catgy, articleID, useWords) 
-    test_list, max_sen_len, vocab, catgy, articleID = make_data_list(test, 'test', tree_info, max_sen_len, vocab, catgy, articleID, useWords) 
-    
+    train_list, max_sen_len, vocab, catgy, article_id = make_data_list(train, 'train', tree_info, max_sen_len, vocab, catgy, article_id, use_words) 
+    valid_list, max_sen_len, vocab, catgy, article_id = make_data_list(valid, 'valid', tree_info, max_sen_len, vocab, catgy, article_id, use_words) 
+    test_list, max_sen_len, vocab, catgy, article_id = make_data_list(test, 'test', tree_info, max_sen_len, vocab, catgy, article_id, use_words) 
     class_dim = len(catgy)
 
     data = {}
@@ -71,10 +75,12 @@ def data_load(train, valid, test, tree_info, useWords):
     data['class_dim'] = class_dim
     return data
 
-def embedding_weights_load(words_map,embeddingWeights_path):
+# 分散表現の読み込み
+# =========================================================
+def embedding_weights_load(words_map,embedding_weights_path):
     pre_trained_embedding = None
     try:
-        model = FastText.load_fasttext_format(embeddingWeights_path)
+        model = FastText.load_fasttext_format(embedding_weights_path)
         pre_trained_embedding = "bin"
     except:
         print ("fastText binary file (.bin) is not found!")
@@ -89,30 +95,32 @@ def embedding_weights_load(words_map,embeddingWeights_path):
 
     vocab_size = len(words_map)
     word_dimension = model['a'].shape[0]
-    W = np.zeros((vocab_size,word_dimension),dtype=np.float32)
+    w = np.zeros((vocab_size,word_dimension),dtype=np.float32)
 
     for k,v in words_map.items():
         word = k
         word_number = v
         
         try:
-                W[word_number][:] = model[word]
+                w[word_number][:] = model[word]
         except KeyError as e:
                 if pre_trained_embedding == "bin":
-                    W[word_number][:] = model.seeded_vector(word)
+                    w[word_number][:] = model.seeded_vector(word)
                 else:
                     np.random.seed(word_number)
-                    W[word_number][:] = np.random.uniform(-0.25, 0.25, word_dimension)
-    return W
+                    w[word_number][:] = np.random.uniform(-0.25, 0.25, word_dimension)
+    return w
 
-def get_catgy_mapping(network_output_order_list, test_labels, prediction,currentDepth):
+# ネットワークの出力をラベルに変換
+# =========================================================
+def get_catgy_mapping(network_output_order_list, test_labels, prediction,current_depth):
     
-    predictResult = []
-    grandLabels = []
+    predict_result = []
+    grand_labels = []
     
     for i in range(len(test_labels)):
-        predictResult.append([])
-        grandLabels.append([])
+        predict_result.append([])
+        grand_labels.append([])
 
     class_dim = prediction.shape[1]
 
@@ -133,9 +141,9 @@ def get_catgy_mapping(network_output_order_list, test_labels, prediction,current
     for i,j in tqdm(enumerate(prediction), desc="Generating predict labels..."):
         one_hots = np.where(j == 1)[0]
         if len(one_hots) >= 1:
-            predictResult[i] = np_orderList[one_hots].tolist()
+            predict_result[i] = np_orderList[one_hots].tolist()
 
-    output_grand_truth_file_name = "CNN/RESULT/grand_truth_" + currentDepth + ".csv"
+    output_grand_truth_file_name = "CNN/RESULT/grand_truth_" + current_depth + ".csv"
     with open(output_grand_truth_file_name, 'w') as f:
         f.write(','.join(network_output_order_list)+"\n")
 
@@ -143,14 +151,15 @@ def get_catgy_mapping(network_output_order_list, test_labels, prediction,current
         for i,j in tqdm(enumerate(test_labels), desc="Generating grand truth labels..."):
             one_hots = np.where(j == 1)[1]
             if len(one_hots) >= 1:
-                grandLabels[i] = np_orderList[one_hots].tolist()
-                f.write(",".join(grandLabels[i])+"\n")
+                grand_labels[i] = np_orderList[one_hots].tolist()
+                f.write(",".join(grand_labels[i])+"\n")
             else:
                 f.write("\n")
 
-    return grandLabels,predictResult
+    return grand_labels,predict_result
 
-
+# 結果をファイルに書き出す
+# =========================================================
 def write_out_prediction(GrandLabels, PredResult, input_data_dic):
 
     # Writing out prediction
@@ -164,27 +173,33 @@ def write_out_prediction(GrandLabels, PredResult, input_data_dic):
         result_file.write("{}\t{}\t{}\n".format(','.join(sorted(g)), ','.join(sorted(p)), t['text']))
     result_file.close()
 
-# Making Problems
+# 読み込んだデータを各種変換
 #========================================================
 
+# 読み込んだテキストデータをndarrayに変換
+# =========================================================
 def build_input_sentence_data(sentences):
     x = np.array(sentences)
     return x
-    
+
+# 文字列ラベルを数字に変換
+# =========================================================
 def build_input_label_data(labels, class_order):
     from sklearn.preprocessing import MultiLabelBinarizer
     from itertools import chain
 
     bml = MultiLabelBinarizer(classes=class_order, sparse_output=True)
     indexes = sp.find(bml.fit_transform(labels)) 
-    Y = []
+    y = []
 
     for i in range(len(labels)):
-        Y.append([])
+        y.append([])
     for i,j in zip(indexes[0], indexes[1]):
-        Y[i].append(j)
-    return Y
+        y[i].append(j)
+    return y
 
+# 全ての文書を同じ長さにするためにパディングを実施
+# =========================================================
 def pad_sentences(sentences, padding_word=-1, max_length=50):
     sequence_length = max(max(len(x) for x in sentences), max_length)
     padded_sentences = []
@@ -198,6 +213,8 @@ def pad_sentences(sentences, padding_word=-1, max_length=50):
         padded_sentences.append(new_sentence)
     return padded_sentences
 
+# 文書, ラベルをネットワークに入力可能な数値に変換
+# =========================================================
 def build_problem(learning_categories, depth, input_data_dic):
 
     train_data = input_data_dic['train']
@@ -226,13 +243,15 @@ def build_problem(learning_categories, depth, input_data_dic):
     trn_padded = pad_sentences(trn_text, max_length=max_sen_len)
     val_padded = pad_sentences(val_text, max_length=max_sen_len)
     tst_padded = pad_sentences(tst_text, max_length=max_sen_len)
-    X_trn = build_input_sentence_data(trn_padded)
-    X_val = build_input_sentence_data(val_padded)
-    X_tst = build_input_sentence_data(tst_padded)
-    Y_trn = build_input_label_data(trn_labels,learning_categories)
-    Y_val = build_input_label_data(val_labels, learning_categories)
-    Y_tst = build_input_label_data(tst_labels, learning_categories)
+    x_trn = build_input_sentence_data(trn_padded)
+    x_val = build_input_sentence_data(val_padded)
+    x_tst = build_input_sentence_data(tst_padded)
+    y_trn = build_input_label_data(trn_labels,learning_categories)
+    y_val = build_input_label_data(val_labels, learning_categories)
+    y_tst = build_input_label_data(tst_labels, learning_categories)
 
-    return X_trn, Y_trn, X_val, Y_val, X_tst, Y_tst
+    return x_trn, y_trn, x_val, y_val, x_tst, y_tst
 
+# 数字を序数に変換
+# =========================================================
 def order_n(i): return {1:"1st", 2:"2nd", 3:"3rd"}.get(i) or "%dth"%i
