@@ -1,12 +1,13 @@
 #! /usr/bin/env python
-
+import random
 
 import chainer
 import chainer.functions as F
 import chainer.links as L
 import numpy as np
-import random
 
+# XML-CNNネットワーク
+# =========================================================
 class CNN(chainer.Chain):
 
     def __init__(self, **params):
@@ -19,34 +20,38 @@ class CNN(chainer.Chain):
             self.mode = params["mode"] if "mode" in params else None
             self.load_param_node_name = params["load_param_node_name"] if "load_param_node_name" in params else None 
             self.cudnn = params["cudnn"] if "cudnn" in params else 'never'
-            self.embeddingWeights = params["embeddingWeights"]
+            self.embedding_weights = params["embedding_weights"]
             self.initializer = chainer.initializers.HeNormal()
-                            
+            
+            # ネットワーク定義
+            # =========================================================
             if self.mode == "scratch":
                 super(CNN, self).__init__()
                 set_seed_random(0)
                 with self.init_scope():
-                    self.lookup = L.EmbedID(in_size = self.embeddingWeights.shape[0], out_size = self.embeddingWeights.shape[1], initialW = self.embeddingWeights, ignore_label = -1)
+                    self.lookup = L.EmbedID(in_size = self.embedding_weights.shape[0], out_size = self.embedding_weights.shape[1], initialW = self.embedding_weights, ignore_label = -1)
                     self.conv1 = L.Convolution2D(self.in_channels,self.out_channels,(2, self.row_dim), stride=2,initialW=self.initializer)
                     self.conv2 = L.Convolution2D(self.in_channels,self.out_channels,(3, self.row_dim), stride=2,initialW=self.initializer)
                     self.conv3 = L.Convolution2D(self.in_channels,self.out_channels,(4, self.row_dim), stride=2,initialW=self.initializer)
                     self.l1=L.Linear(in_size = None, out_size = self.hidden_dim, initialW=self.initializer)
                     self.l2=L.Linear(in_size = self.hidden_dim, out_size = self.n_classes, initialW=self.initializer)
-                    
+             # テスト時のネットワーク定義
+        # =========================================================        
             elif self.mode == "test-predict":
                 parameters = np.load('./CNN/PARAMS/parameters_for_multi_label_model_' + self.load_param_node_name +'.npz')
                 super(CNN, self).__init__()
                 set_seed_random(0)
                 with self.init_scope():
-                    self.lookup = L.EmbedID(in_size = self.embeddingWeights.shape[0], out_size = self.embeddingWeights.shape[1], initialW = parameters['lookup/W'], ignore_label = -1)
+                    self.lookup = L.EmbedID(in_size = self.embedding_weights.shape[0], out_size = self.embedding_weights.shape[1], initialW = parameters['lookup/W'], ignore_label = -1)
                     self.conv1 = L.Convolution2D(self.in_channels,self.out_channels,(2, self.row_dim),stride=2,initialW=parameters['conv1/W'],initial_bias=parameters['conv1/b'])   
                     self.conv2 = L.Convolution2D(self.in_channels,self.out_channels,(3, self.row_dim),stride=2,initialW=parameters['conv2/W'],initial_bias=parameters['conv2/b'])
                     self.conv3 = L.Convolution2D(self.in_channels,self.out_channels,(4, self.row_dim),stride=2,initialW=parameters['conv3/W'],initial_bias=parameters['conv3/b']) 
                     self.l1=L.Linear(in_size = None, out_size = self.hidden_dim, initialW=parameters['l1/W'], initial_bias=parameters['l1/b'])
                     self.l2=L.Linear(self.hidden_dim, self.n_classes, initialW=parameters['l2/W'], initial_bias = parameters['l2/b'])
-                        
 
-            
+
+    # XML-CNNの順伝播処理. MyUpdater, MyEvaluatorから実行.
+    # =========================================================        
     def __call__(self, x):
         with chainer.using_config('use_cudnn', self.cudnn):
                     with chainer.using_config('cudnn_deterministic', True):
@@ -68,7 +73,8 @@ class CNN(chainer.Chain):
                         
         return y
 
-
+# 乱数のシード値の設定
+# =========================================================
 def set_seed_random(seed):
     random.seed(seed)
     np.random.seed(seed)
