@@ -143,9 +143,13 @@ EmbeddingWeightsPath=./Word_embedding/
  
 * Training data: tagged training data
 * Validation data: tagged validation data
-    * Please see [Early Stopping](https://docs.chainer.org/en/stable/reference/generated/chainer.training.triggers.EarlyStoppingTrigger.html)
 * Test data:  test data for categorization
 
+Validation data is used to evaluate generalization error for each
+epoch. It is used to find when overfitting starts during the
+training. Training is then stopped before convergence to avoid the
+overfitting, i.e., [early stopping](https://docs.chainer.org/en/stable/reference/generated/chainer.training.triggers.EarlyStoppingTrigger.html). The parameter whose generalization
+error is the lowest among all the epochs is stored.
 
 ### Format
 The data format is:
