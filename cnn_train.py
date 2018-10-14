@@ -31,7 +31,7 @@ def select_function(scores):
         np_predicts[i] = (scores[i] >= 0.5)
     return np_predicts
 
-# The setting of the seed value for random number generation
+# setting of the seed value for random number
 # =========================================================
 def set_seed_random(seed):
         random.seed(seed)
@@ -110,7 +110,7 @@ def main(params):
     val_iter = chainer.iterators.SerialIterator(val, params["batchsize"], repeat = False, shuffle=False)
     
 
-    # The Setting of Early stopping validation refers to a loss value (validation/main/loss) obtained by validation data
+    # Setting of Early stopping. validation/main/loss refers to loss value obtained by validation data
     # =========================================================
     stop_trigger = training.triggers.EarlyStoppingTrigger(
     monitor='validation/main/loss',
@@ -184,7 +184,7 @@ def main(params):
                 np.savetxt(f,tmp,fmt='%.4g',delimiter=",")
     return output
 
-# Categorization of the top level of a hierarchy by using WoFt and HFT models
+# test categorization of the top level of a hierarchy by using WoFt and HFT models
 # =========================================================
 def  load_top_level_weights(params):
     print ("-"*50)

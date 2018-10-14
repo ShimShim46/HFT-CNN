@@ -94,7 +94,7 @@ class CNN(chainer.Chain):
                 
         return y
         
-# The setting of the seed value for random number generation
+# setting of the seed value for random number
 # =========================================================
 def set_seed_random(seed):
     random.seed(seed)
