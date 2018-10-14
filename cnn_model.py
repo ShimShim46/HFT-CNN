@@ -8,7 +8,8 @@ import chainer.links as L
 import numpy as np
 
 
-# CNNネットワーク(Flat, WoFt, HFT)
+
+# CNN Network(Fla, WoFt, HFT)
 # =========================================================
 class CNN(chainer.Chain):
 
@@ -25,7 +26,8 @@ class CNN(chainer.Chain):
         self.embedding_weight = params["embedding_weight"]
         self.initializer = chainer.initializers.HeNormal()
 
-        # HFTモデルのネットワーク定義
+        
+        # Network definition for HFT model
         # =========================================================
         if self.mode == "fine-tuning":
             parameters = np.load('./CNN/PARAMS/parameters_for_multi_label_model_' + self.load_param_node_name + '.npz')
@@ -39,7 +41,8 @@ class CNN(chainer.Chain):
                 self.l1=L.Linear(in_size = None, out_size = self.hidden_dim, initialW=self.initializer)
                 self.l2=L.Linear(in_size = self.hidden_dim, out_size = self.n_classes, initialW=self.initializer)                
         
-        # Flat, WoFtモデルのネットワーク定義
+        
+        # Network definition for Flat and WoFt models
         # =========================================================
         elif self.mode == "scratch":
             super(CNN, self).__init__()
@@ -52,7 +55,8 @@ class CNN(chainer.Chain):
                 self.l1=L.Linear(in_size = None, out_size = self.hidden_dim, initialW=self.initializer)
                 self.l2=L.Linear(in_size = self.hidden_dim, out_size = self.n_classes, initialW=self.initializer)
         
-        # テスト時のネットワーク定義
+        
+        # Network definition on test
         # =========================================================
         elif self.mode == "test-predict":
             parameters = np.load('./CNN/PARAMS/parameters_for_multi_label_model_' + self.load_param_node_name +'.npz')
@@ -66,7 +70,8 @@ class CNN(chainer.Chain):
                 self.l1=L.Linear(in_size = None, out_size = self.hidden_dim, initialW=parameters['l1/W'], initial_bias=parameters['l1/b'])
                 self.l2=L.Linear(self.hidden_dim, self.n_classes, initialW=parameters['l2/W'], initial_bias = parameters['l2/b'])
     
-    # CNNの順伝播処理. MyUpdater, MyEvaluatorから実行.
+    
+    # Forward propagation in CNN, execute from MyUpdater and MyEvaluator
     # =========================================================
     def __call__(self, x):
         with chainer.using_config('use_cudnn', self.cudnn):
@@ -89,7 +94,7 @@ class CNN(chainer.Chain):
                 
         return y
         
-# 乱数のシード値の設定
+# setting of the seed value for random number
 # =========================================================
 def set_seed_random(seed):
     random.seed(seed)

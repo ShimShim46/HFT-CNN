@@ -22,7 +22,7 @@ from MyUpdater import MyUpdater
 
 USE_CUDNN = 'never' ## always, auto, or never
 
-# しきい値(0.5)よりも値が大きなニューロンを取得
+# Extraction of enurons whose threshold values are larger than 0.5 
 # =========================================================
 def select_function(scores):
     scores = chainer.cuda.to_cpu(scores)
@@ -31,7 +31,7 @@ def select_function(scores):
         np_predicts[i] = (scores[i] >= 0.5)
     return np_predicts
 
-# 乱数のシード値を設定
+# setting of the seed value for random number
 # =========================================================
 def set_seed_random(seed):
         random.seed(seed)
@@ -39,7 +39,7 @@ def set_seed_random(seed):
         if chainer.cuda.available:
             chainer.cuda.cupy.random.seed(seed)
 
-# CNN学習のメイン関数
+# Main process of CNN learning
 # =========================================================
 def main(params):
     print("")   
@@ -97,7 +97,7 @@ def main(params):
         chainer.cuda.get_device_from_id(params["gpu"]).use()
         model.to_gpu()
     
-    # 訓練データと検証データを使ったCNNの学習
+    # Learning CNN by training and validation data
     # =========================================================
 
     optimizer = chainer.optimizers.Adam()
@@ -109,7 +109,8 @@ def main(params):
     train_iter = chainer.iterators.SerialIterator(train, params["batchsize"], repeat=True, shuffle=False)
     val_iter = chainer.iterators.SerialIterator(val, params["batchsize"], repeat = False, shuffle=False)
     
-    # Early Stoppingの設定. validation/main/lossが検証データのloss値
+
+    # Setting of Early stopping. validation/main/loss refers to loss value obtained by validation data
     # =========================================================
     stop_trigger = training.triggers.EarlyStoppingTrigger(
     monitor='validation/main/loss',
@@ -145,7 +146,8 @@ def main(params):
     dst = './CNN/PARAMS'
     shutil.move(os.path.join(src, filename), os.path.join(dst, filename))
 
-    # テストデータの推論
+
+    # Prediction process for test data.
     # =========================================================
     print ("-"*50)
     print ("Testing...")
@@ -182,7 +184,7 @@ def main(params):
                 np.savetxt(f,tmp,fmt='%.4g',delimiter=",")
     return output
 
-# WoFtモデルとHFTモデルの第一階層の分類を実施
+# test categorization of the top level of a hierarchy by using WoFt and HFT models
 # =========================================================
 def  load_top_level_weights(params):
     print ("-"*50)

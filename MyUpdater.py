@@ -14,7 +14,7 @@ from chainer.dataset import iterator as iterator_module
 from chainer.datasets import get_mnist
 from chainer.training import extensions, trainer
 
-# CNNの1イテレーションの処理
+# CNN iteration procedure
 # =========================================================
 class MyUpdater(training.StandardUpdater):
     def __init__(self, iterator, optimizer, class_dim, converter=convert.concat_examples,

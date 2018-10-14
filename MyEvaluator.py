@@ -13,7 +13,7 @@ from chainer.dataset import iterator as iterator_module
 from chainer.training import extension, extensions
 
 
-# 検証データのloss値を計算
+# Loss value calculation of validation data
 # =========================================================
 class MyEvaluator(extensions.Evaluator):
 
@@ -73,7 +73,6 @@ class MyEvaluator(extensions.Evaluator):
                 t = cuda.to_gpu(t)
 
                 with function.no_backprop_mode():
-                    #pdb.set_trace()
                     loss = F.sigmoid_cross_entropy(eval_func(x), t)
                     summary.add({MyEvaluator.default_name + '/main/loss':loss})
             summary.add(observation)

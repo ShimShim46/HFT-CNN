@@ -1,9 +1,10 @@
 import os
 import pdb
+import pickle
 import re
 from collections import defaultdict
 from itertools import chain
-import pickle
+
 import chakin
 import numpy as np
 import scipy.sparse as sp
@@ -13,7 +14,8 @@ from sklearn.metrics import classification_report, f1_score
 from sklearn.preprocessing import MultiLabelBinarizer
 from tqdm import tqdm
 
-# 文字列の整形
+
+# sequence operation
 # =========================================================
 def clean_str(string):
     string = re.sub(r"[^A-Za-z0-9(),!?\'\`]", " ", string)
@@ -31,7 +33,8 @@ def clean_str(string):
     string = re.sub(r"\s{2,}", " ", string)
     return string.strip().lower()
 
-# テキストファイルからデータの読み込み
+
+# read data from text file
 # =========================================================
 def  make_data_list(data, kind_of_data, tree_info, max_sen_len, vocab, catgy, article_id, useWords):
     data_list = []
@@ -52,7 +55,7 @@ def  make_data_list(data, kind_of_data, tree_info, max_sen_len, vocab, catgy, ar
         del tmp_dict
     return data_list, max_sen_len, vocab, catgy, article_id
 
-# 各種データの読み込み
+# read data
 # =========================================================
 def data_load(train, valid, test, tree_info, use_words):
     vocab = defaultdict( lambda: len(vocab) )
@@ -75,7 +78,8 @@ def data_load(train, valid, test, tree_info, use_words):
     data['class_dim'] = class_dim
     return data
 
-# 分散表現の読み込み
+
+# read word embedding
 # =========================================================
 def embedding_weights_load(words_map,embedding_weights_path):
     pre_trained_embedding = None
@@ -117,7 +121,8 @@ def embedding_weights_load(words_map,embedding_weights_path):
                     w[word_number][:] = np.random.uniform(-0.25, 0.25, word_dimension)
     return w
 
-# ネットワークの出力をラベルに変換
+
+# Conversion from network output to label
 # =========================================================
 def get_catgy_mapping(network_output_order_list, test_labels, prediction,current_depth):
     
@@ -164,7 +169,7 @@ def get_catgy_mapping(network_output_order_list, test_labels, prediction,current
 
     return grand_labels,predict_result
 
-# 結果をファイルに書き出す
+# Write results to a file
 # =========================================================
 def write_out_prediction(GrandLabels, PredResult, input_data_dic):
 
@@ -179,16 +184,16 @@ def write_out_prediction(GrandLabels, PredResult, input_data_dic):
         result_file.write("{}\t{}\t{}\n".format(','.join(sorted(g)), ','.join(sorted(p)), t['text']))
     result_file.close()
 
-# 読み込んだデータを各種変換
+# conversion of data
 #========================================================
 
-# 読み込んだテキストデータをndarrayに変換
+# conversion from text data to ndarray
 # =========================================================
 def build_input_sentence_data(sentences):
     x = np.array(sentences)
     return x
 
-# 文字列ラベルを数字に変換
+# conversion from sequence label to the number
 # =========================================================
 def build_input_label_data(labels, class_order):
     from sklearn.preprocessing import MultiLabelBinarizer
@@ -204,7 +209,7 @@ def build_input_label_data(labels, class_order):
         y[i].append(j)
     return y
 
-# 全ての文書を同じ長さにするためにパディングを実施
+# padding operation
 # =========================================================
 def pad_sentences(sentences, padding_word=-1, max_length=50):
     sequence_length = max(max(len(x) for x in sentences), max_length)
@@ -219,7 +224,7 @@ def pad_sentences(sentences, padding_word=-1, max_length=50):
         padded_sentences.append(new_sentence)
     return padded_sentences
 
-# 文書, ラベルをネットワークに入力可能な数値に変換
+# conversion from documents and labels to the numbers
 # =========================================================
 def build_problem(learning_categories, depth, input_data_dic):
 
@@ -236,7 +241,7 @@ def build_problem(learning_categories, depth, input_data_dic):
         val_labels = [doc['catgy'] for doc in validation_data]
         tst_text = [[vocab[word] for word in doc['text'].split()] for doc in test_data]
         tst_labels = [doc['catgy'] for doc in test_data]
-       
+
     else:
         layer = int(depth[:-2])
         trn_text = [[vocab[word] for word in doc['text'].split()] for doc in train_data if (layer in doc['hie_info']) or ((layer-1) in doc['hie_info'])]
@@ -245,7 +250,7 @@ def build_problem(learning_categories, depth, input_data_dic):
         val_labels = [list( set(doc['catgy']) & set(learning_categories)) for doc in validation_data if (layer in doc['hie_info']) or ((layer-1) in doc['hie_info'])]
         tst_text = [[vocab[word] for word in doc['text'].split()] for doc in test_data]
         tst_labels = [list( set(doc['catgy']) & set(learning_categories)) if layer in doc['hie_info'] else [] for doc in test_data]
-    
+
     trn_padded = pad_sentences(trn_text, max_length=max_sen_len)
     val_padded = pad_sentences(val_text, max_length=max_sen_len)
     tst_padded = pad_sentences(tst_text, max_length=max_sen_len)
@@ -258,6 +263,7 @@ def build_problem(learning_categories, depth, input_data_dic):
 
     return x_trn, y_trn, x_val, y_val, x_tst, y_tst
 
-# 数字を序数に変換
+
+# conversion from the number to an ordinal number
 # =========================================================
 def order_n(i): return {1:"1st", 2:"2nd", 3:"3rd"}.get(i) or "%dth"%i

@@ -1,20 +1,20 @@
 import copy
 from collections import defaultdict
 
-# 階層構造(木)の作成
+# Create a hierarchical structure
 # =========================================================
 def make(): return defaultdict(make)
 
 
 def dicts(t): return {k: dicts(t[k]) for k in t}
 
-# 階層構造(木)へラベルを追加
+# Add labels to a hierarchical structure
 # ========================================================= 
 def add(t, path):
     for node in path:
         t = t[node]
 
-# 親ラベルの探索
+# Search parent labels
 # =========================================================
 def search_parent(tree,child,layer=1,prev_parent='root'):
     for k,v in list(tree.items()):
@@ -30,7 +30,7 @@ def search_parent(tree,child,layer=1,prev_parent='root'):
                 else:
                         continue
 
-# 子ラベルの探索
+# Search child labels
 # =========================================================
 def search_child(tree,node,layer=1):
     if (node == "root" or node =="ROOT" or node == "Root"):
@@ -48,7 +48,7 @@ def search_child(tree,node,layer=1):
             else:
                 continue
 
-# 指定ラベルの根からのパスを探索
+# Search path from the root of the specified label
 # =========================================================
 def search_path(tree, node):
         start_node = copy.deepcopy(node)

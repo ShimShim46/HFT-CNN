@@ -11,7 +11,7 @@ import cnn_train
 import data_helper
 import tree
 
-# CNNの学習
+# Learning CNN model
 # =========================================================
 def train_problem(current_depth, upper_depth, class_num, fine_tuning, embedding_weight, input_data, model_type, learning_categories):
     params = {"gpu":0, 
@@ -41,7 +41,7 @@ def train_problem(current_depth, upper_depth, class_num, fine_tuning, embedding_
     
     return network_output
 
-# 各ラベルと階層の深さとの対応を保存した辞書を作成
+# Creating dictionary according to each level of a hierarchy
 # =========================================================
 def make_labels_hie_info_dic(tree_path):
         label_hierarchical_info_dic = {}
@@ -53,7 +53,8 @@ def make_labels_hie_info_dic(tree_path):
                 if category not in label_hierarchical_info_dic:
                         label_hierarchical_info_dic[category] = level
         return label_hierarchical_info_dic
-# 階層の深さと各ラベルとの対応を保存した辞書を作成
+
+# Creating dctionary with each level of a hierarchy
 # =========================================================
 def make_labels_hie_list_dic(labels, label_hierarchical_info_dic):
         layer_category_list_dic = {}
@@ -62,10 +63,10 @@ def make_labels_hie_list_dic(labels, label_hierarchical_info_dic):
                 layer_category_list_dic[i] = a_set
         for label in labels:
             layer_category_list_dic[int(label_hierarchical_info_dic[label])].add(label)
-    
+
         return layer_category_list_dic
 
-# 階層構造を作成
+# Create a hierarchy
 # =========================================================
 def make_tree(tree_file_path):
     Tree = tree.make()

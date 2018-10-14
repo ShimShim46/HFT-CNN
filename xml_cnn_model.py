@@ -6,7 +6,7 @@ import chainer.functions as F
 import chainer.links as L
 import numpy as np
 
-# XML-CNNネットワーク
+# XML-CNN Network
 # =========================================================
 class CNN(chainer.Chain):
 
@@ -23,7 +23,7 @@ class CNN(chainer.Chain):
             self.embedding_weight = params["embedding_weight"]
             self.initializer = chainer.initializers.HeNormal()
             
-            # ネットワーク定義
+            # Network definition
             # =========================================================
             if self.mode == "scratch":
                 super(CNN, self).__init__()
@@ -35,8 +35,9 @@ class CNN(chainer.Chain):
                     self.conv3 = L.Convolution2D(self.in_channels,self.out_channels,(4, self.row_dim), stride=2,initialW=self.initializer)
                     self.l1=L.Linear(in_size = None, out_size = self.hidden_dim, initialW=self.initializer)
                     self.l2=L.Linear(in_size = self.hidden_dim, out_size = self.n_classes, initialW=self.initializer)
-             # テスト時のネットワーク定義
-        # =========================================================        
+            
+            # Network definition on test
+        # =========================================================
             elif self.mode == "test-predict":
                 parameters = np.load('./CNN/PARAMS/parameters_for_multi_label_model_' + self.load_param_node_name +'.npz')
                 super(CNN, self).__init__()
@@ -50,8 +51,8 @@ class CNN(chainer.Chain):
                     self.l2=L.Linear(self.hidden_dim, self.n_classes, initialW=parameters['l2/W'], initial_bias = parameters['l2/b'])
 
 
-    # XML-CNNの順伝播処理. MyUpdater, MyEvaluatorから実行.
-    # =========================================================        
+    # Forward propagation in XML-CNN, execute from MyUpdater and MyEvaluator
+    # =========================================================
     def __call__(self, x):
         with chainer.using_config('use_cudnn', self.cudnn):
                     with chainer.using_config('cudnn_deterministic', True):
@@ -73,7 +74,7 @@ class CNN(chainer.Chain):
                         
         return y
 
-# 乱数のシード値の設定
+# setting of the seed value for random number
 # =========================================================
 def set_seed_random(seed):
     random.seed(seed)
