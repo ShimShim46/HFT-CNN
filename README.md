@@ -1,14 +1,14 @@
 HFT-CNN
 ==
 ![result](https://github.com/ShimShim46/HFT-CNN/blob/media/demo.gif)
-These four codes/models are Chainer based implementation for Convolutional Neural Networks for text categorization. 
+These four code/models are Chainer based implementation for text categorization by Convolutional Neural Networks.
 * Flat model: Flat non-hierarchical model
 * Without Fine-tuning (WoFt) model: Hierarchical model but without Fine-tuning
 * Hierarchical Fine-Tuning (HFT) model: Hierarchical and Fine-tuning model
-* XML-CNN model ([Liu+ '17](http://nyc.lti.cs.cmu.edu/yiming/Publications/jliu-sigir17.pdf)) : Liu'17 model
+* XML-CNN model [[Liu+'17](http://nyc.lti.cs.cmu.edu/yiming/Publications/jliu-sigir17.pdf)]
 
 
-If you find that the codes are useful for your research, please cite the following paper. BibTex entry.
+If you use any part of this code in my research, please cite my paper:
 
 @inproceedings{Shimura2018,
 title={HFT-CNN: Learning Hierarchical Category Structure for Multi-label Short Text Categorization},
@@ -18,11 +18,11 @@ pages={},
 year={2018},
 }
 
-Contact person: Kazuya Shimura, g17tk008(at)yamanashi(dot)ac(dot)jp
+Contact: Kazuya Shimura, g17tk008(at)yamanashi(dot)ac(dot)jp
 
 <!-- https://cl.cs.yamanashi.ac.jp -->
 
-If something is broken or if you have further questions, please send me an e-mail.
+If you have further questions, please feel free to contact me.
 
 ### Features of each model
 
@@ -40,11 +40,11 @@ In order to run the code, I recommend the following environment.
 * CuPy 4.0.0 or higher.  ([cupy](https://cupy.chainer.org/))
 
 ## Requirements
-The codes require GPU environment. Please see requirements.txt to run our codes.
+The code require GPU environment. Please see requirements.txt to run my code.
 
 
 ## Installation
-1. Download codes from **clone or download**
+1. Download code from **clone or download**
 1. Install the requirements: reguriements.txt
 1.  You can also use Python data science platform, [Anaconda](https://www.anaconda.com/enterprise/) as follows:
     * Download Anaconda from (https://www.anaconda.com/download/)
@@ -59,7 +59,7 @@ The codes require GPU environment. Please see requirements.txt to run our codes.
 
         source activate hft_cnn_env
         ```
-1. You can run our HFT-CNN codes on this environment.
+1. You can run my HFT-CNN code in this environment
    
 ## Directory structure
 ```
@@ -70,7 +70,7 @@ The codes require GPU environment. Please see requirements.txt to run our codes.
 |--cnn_model.py  ##  CNN model
 |--cnn_train.py  ##  CNN training
 |--data_helper.py  ##  Data helper
-|--example.sh  ##  you can run and categorize my codes by using sample data
+|--example.sh  ##  you can run and categorize my code by using sample data
 |--hft_cnn_env.yml ##  Anaconda components dependencies
 |--LICENSE  ## MIT LICENSE
 |--MyEvaluator.py  ##  CNN training (validation)
@@ -86,11 +86,11 @@ The codes require GPU environment. Please see requirements.txt to run our codes.
 |  |--Amazon_all.tree  ## a hierarchical structure provided by Amazon
 |--tree.py  ## Tree operation
 |--Word_embedding  ## Directory of word embedding
-|--xml_cnn_model.py  ## Chainers's version of Liu et al XML-CNN model
+|--xml_cnn_model.py  ##  Chainer's version of XML-CNN model [Liu+'17]
 ```
 
 ## Quick-start
-You can categorize sample data (Amazon product reviews) by running example.sh, Flat model.
+You can categorize sample data (Amazon product reviews) by running example.sh, with the Flat model.
 
 ```
 bash example.sh
@@ -109,7 +109,7 @@ The results are stored:
 
 
 ## Training model change
-You can change a training model by "ModelType" in the file, example.sh
+You can change a training model by modifying the "ModelType" in the file "example.sh"
 
 ```
 ## Network Type (XML-CNN,  CNN-Flat,  CNN-Hierarchy,  CNN-fine-tuning or Pre-process)
@@ -122,13 +122,13 @@ ModelType=XML-CNN
 
 Notes:
 
-* When you chose CNN-Hierarchy or CNN-fine-tuning, learn a model by using **Pre-process**.
-    * Example) ``` ModelType=Pre-process => ModelType=CNN-Hierarchy```
+* When you choose CNN-Hierarchy or CNN-fine-tuning, learn a model by using **Pre-process**
+    * Example: ``` ModelType=Pre-process => ModelType=CNN-Hierarchy```
     ![result](https://github.com/ShimShim46/HFT-CNN/blob/media/pre-process_demo.gif)
-* When you chose **Pre-process**, it learns the top level of a hierarchy and stores CNN parameters. The stored parameters are used in both CNN-Hierarchy and CNN-fine-tuning.
+* When you choose **Pre-process**, it learns the top level of a hierarchy and stores CNN parameters. The stored parameters are used in both CNN-Hierarchy and CNN-fine-tuning.
 
 ## Word embedding
-Our codes utilize word embedding obtained by [fastText](https://github.com/facebookresearch/fastText).
+my code utilize word embedding obtained by [fastText](https://github.com/facebookresearch/fastText).
 There are two options:
 1.  You can simply run example.sh. In this case, ```wiki.en.vec``` is downloaded in the directory Word_embedding and is used for training.
 
@@ -141,8 +141,8 @@ EmbeddingWeightsPath=./Word_embedding/
 ## Learning by using your own data
 ### Data
  
-* Training data: tagged training data
-* Validation data: tagged validation data
+* Training data: labeled training data
+* Validation data: labeled validation data
 * Test data:  test data for categorization
 
 Validation data is used to evaluate generalization error for each
@@ -160,7 +160,7 @@ The data format is:
 
 Each column is split by Tab(\t).
 
-Example)
+Example:
 ```
 LABEL1  I am a boy .
 LABEL2,LABEL6  This is my pen .
@@ -173,3 +173,12 @@ You can use your own hierarchical structure by overwriting "TreefilePath" in the
 
 ## License
 MIT
+
+## References
+[Liu+'17]
+
+J. Liu, W-C. Chang, Y. Wu, and Y. Yang. 2017. Deep
+Learning for Extreme Multi-Label Text Classifica-
+tion. In Proc. of the 40th International ACM SIGIR
+Conference on Research and Development in Infor-
+mation Retrieval, pages 115–124.
