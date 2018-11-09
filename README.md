@@ -9,15 +9,15 @@ These four code/models are Chainer based implementation for text categorization 
 
 
 If you use any part of this code in my research, please cite my paper:
-
-@inproceedings{Shimura2018,
-title={HFT-CNN: Learning Hierarchical Category Structure for Multi-label Short Text Categorization},
-Author={Kazuya Shimura, Jiyi Li and Fumiyo Fukumoto},
-booktitle={EMNLP},
-pages={},
-year={2018},
+```
+@inproceedings{HFT-CNN,
+    title={HFT-CNN: Learning Hierarchical Category Structure for Multi-label Short Text Categorization},
+    Author={Kazuya Shimura and Jiyi Li and Fumiyo Fukumoto},
+    booktitle={Proceedings of the 2018 Conference on Empirical Methods in Natural Language Processing},
+    pages={811--816},
+    year={2018},
 }
-
+```
 Contact: Kazuya Shimura, g17tk008(at)yamanashi(dot)ac(dot)jp
 
 <!-- https://cl.cs.yamanashi.ac.jp -->
