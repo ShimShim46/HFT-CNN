@@ -49,4 +49,4 @@ tqdm==4.19.5
 treetaggerwrapper==2.2.4
 tzlocal==1.5.1
 urllib3==1.22
-Werkzeug==0.12.2
+Werkzeug==0.15.3
