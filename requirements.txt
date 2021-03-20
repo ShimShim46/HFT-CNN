@@ -22,7 +22,7 @@ future==0.16.0
 gensim==3.2.0
 idna==2.6
 itsdangerous==0.24
-Jinja2==2.10
+Jinja2==2.11.3
 jmespath==0.9.3
 Mako==1.0.7
 MarkupSafe==1.0
