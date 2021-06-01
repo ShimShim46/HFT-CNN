@@ -48,5 +48,5 @@ SQLAlchemy==1.2.2
 tqdm==4.19.5
 treetaggerwrapper==2.2.4
 tzlocal==1.5.1
-urllib3==1.22
+urllib3==1.26.5
 Werkzeug==0.12.2
