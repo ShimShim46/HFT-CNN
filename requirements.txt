@@ -27,7 +27,7 @@ jmespath==0.9.3
 Mako==1.0.7
 MarkupSafe==1.0
 matplotlib==2.1.2
-numpy==1.14.0
+numpy==1.22.0
 pandas==0.22.0
 progressbar2==3.36.0
 protobuf==3.5.1
