@@ -30,7 +30,7 @@ matplotlib==2.1.2
 numpy==1.14.0
 pandas==0.22.0
 progressbar2==3.36.0
-protobuf==3.5.1
+protobuf==3.18.3
 pyfasttext==0.4.4
 pyparsing==2.2.0
 python-dateutil==2.6.1
