@@ -4,7 +4,7 @@ boto==2.48.0
 boto3==1.5.22
 botocore==1.8.36
 bz2file==0.98
-certifi==2017.11.5
+certifi==2022.12.7
 chainer==4.0.0
 chainerui==0.2.0
 chakin==0.0.6
